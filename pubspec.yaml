@@ -65,6 +65,32 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
 
+  # Generates platform launcher icons (Android/iOS) and web icons from a single
+  # source image. Run: `dart run flutter_launcher_icons`.
+  flutter_launcher_icons: ^0.14.1
+
+# Configuration for flutter_launcher_icons. The source image lives at
+# assets/icon/app_icon.png (1024x1024, square). `remove_alpha_ios` flattens the
+# transparency iOS rejects; `background_color` fills behind it.
+flutter_launcher_icons:
+  image_path: "assets/icon/app_icon.png"
+  # Android: use an adaptive icon so the launcher fills edge-to-edge and masks
+  # to the device shape. Red fills the background layer; the mannequin + leaf
+  # (transparent PNG) is the foreground, pre-padded for the safe zone.
+  android: true
+  adaptive_icon_background: "#9F1D2B"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  # Keep a sensible legacy bitmap for pre-Android-8 launchers.
+  image_path_android: "assets/icon/app_icon.png"
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#9F1D2B"
+  web:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+    background_color: "#9F1D2B"
+    theme_color: "#9F1D2B"
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
