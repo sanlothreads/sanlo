@@ -5,6 +5,10 @@
 /// Keeping both in one place avoids stringly-typed drift between the router
 /// configuration and the navigation call sites.
 abstract final class Routes {
+  // --- Splash ---------------------------------------------------------------
+  static const String splashPath = '/';
+  static const String splashName = 'splash';
+
   // --- Auth -----------------------------------------------------------------
   static const String signInPath = '/signin';
   static const String signInName = 'signIn';

@@ -13,6 +13,8 @@ void main() {
     await tester.pumpWidget(
       SanloApp(locator: ServiceLocator(authRepository: MockAuthRepository())),
     );
+    // The app opens on the 2s splash screen; advance past it to reach Sign in.
+    await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();
 
     // Tap 'Skip' to continue as guest to Home screen

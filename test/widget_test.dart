@@ -16,8 +16,10 @@ void main() {
     await tester.pumpWidget(
       SanloApp(locator: ServiceLocator(authRepository: MockAuthRepository())),
     );
-    // pump once more to settle the initial frame of the router's first route.
-    await tester.pump();
+    // The app opens on the splash screen, which schedules a 2s timer before
+    // navigating. Advance past it and settle so no timer is left pending.
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
 
     expect(find.byType(SanloApp), findsOneWidget);
   });
