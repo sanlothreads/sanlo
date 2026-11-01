@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "199124552386",
+    "firebase_url": "https://sanlo-93824-default-rtdb.firebaseio.com",
+    "project_id": "sanlo-93824",
+    "storage_bucket": "sanlo-93824.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199124552386:android:e65918d75b972b7093895b",
+        "android_client_info": {
+          "package_name": "com.example.sanlo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpQKmnDHHTa1vmh7Of7T8yzc1XLWaEp7k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
