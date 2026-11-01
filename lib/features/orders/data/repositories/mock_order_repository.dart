@@ -1,0 +1,230 @@
+import '../../../../core/error/failures.dart';
+import '../../../catalog/domain/entities/category.dart';
+import '../../../catalog/domain/entities/product.dart';
+import '../../domain/entities/order.dart';
+import '../../domain/entities/order_draft.dart';
+import '../../domain/entities/order_status.dart';
+import '../../domain/entities/timeline_step.dart';
+import '../../domain/repositories/order_repository.dart';
+
+/// In-memory [OrderRepository] used before a real API exists.
+///
+/// Seeds the active/completed orders and the six-stage tracking timeline shown
+/// in the "My orders" and "Order tracking" mockups, and supports placing new
+/// orders with generated `SN-####` ids.
+class MockOrderRepository implements OrderRepository {
+  MockOrderRepository()
+      : _active = List<Order>.from(_seedActiveOrders()),
+        _completed = List<Order>.from(_seedCompletedOrders());
+
+  final List<Order> _active;
+  final List<Order> _completed;
+
+  /// Counter used to generate the next `SN-####` id for placed orders.
+  int _nextOrderNumber = 1052;
+
+  // --- Product seeds (mirror the catalog definitions) ---------------------
+
+  static const Product _blouse = Product(
+    id: 'p_blouse',
+    category: CategoryKind.women,
+    name: 'Designer Blouse',
+    typeLabel: 'Blouse',
+    rating: 4.8,
+    readyInDays: 5,
+    priceInr: 650,
+    imageCount: 4,
+  );
+
+  static const Product _kurta = Product(
+    id: 'p_kurta',
+    category: CategoryKind.men,
+    name: 'Kurta Pajama',
+    typeLabel: 'Kurta set',
+    rating: 4.8,
+    readyInDays: 6,
+    priceInr: 1000,
+    imageCount: 4,
+  );
+
+  static const Product _anarkali = Product(
+    id: 'p_anarkali',
+    category: CategoryKind.women,
+    name: 'Anarkali Kurti',
+    typeLabel: 'Kurti',
+    rating: 4.7,
+    readyInDays: 7,
+    priceInr: 900,
+    imageCount: 4,
+  );
+
+  static const Product _shirt = Product(
+    id: 'p_shirt',
+    category: CategoryKind.men,
+    name: 'Formal Shirt',
+    typeLabel: 'Shirt',
+    rating: 4.6,
+    readyInDays: 4,
+    priceInr: 550,
+    imageCount: 4,
+  );
+
+  static const Product _frock = Product(
+    id: 'p_frock',
+    category: CategoryKind.kids,
+    name: 'Kids Frock',
+    typeLabel: 'Frock',
+    rating: 4.9,
+    readyInDays: 3,
+    priceInr: 450,
+    imageCount: 4,
+  );
+
+  // --- Order seeds --------------------------------------------------------
+
+  static List<Order> _seedActiveOrders() {
+    return [
+      Order(
+        id: 'SN-1048',
+        product: _blouse,
+        placedDate: DateTime(2025, 10, 20, 11, 20),
+        status: OrderStatus.inProgress,
+        progress: 0.4,
+        nextStep: 'Stitching started',
+        amountAtShopInr: 650,
+        expectedReady: DateTime(2025, 10, 27),
+      ),
+      Order(
+        id: 'SN-1041',
+        product: _kurta,
+        placedDate: DateTime(2025, 10, 18, 9, 10),
+        status: OrderStatus.inProgress,
+        progress: 0.4,
+        nextStep: 'Stitching started',
+        amountAtShopInr: 1000,
+        expectedReady: DateTime(2025, 10, 26),
+      ),
+      Order(
+        id: 'SN-1036',
+        product: _anarkali,
+        placedDate: DateTime(2025, 10, 15, 16, 30),
+        status: OrderStatus.inProgress,
+        progress: 0.8,
+        nextStep: 'Final touch-up',
+        amountAtShopInr: 900,
+        expectedReady: DateTime(2025, 10, 24),
+      ),
+    ];
+  }
+
+  static List<Order> _seedCompletedOrders() {
+    return [
+      Order(
+        id: 'SN-1012',
+        product: _shirt,
+        placedDate: DateTime(2025, 9, 28, 10, 0),
+        status: OrderStatus.completed,
+        progress: 1.0,
+        nextStep: 'All set',
+        amountAtShopInr: 550,
+        expectedReady: DateTime(2025, 10, 2),
+      ),
+      Order(
+        id: 'SN-1007',
+        product: _frock,
+        placedDate: DateTime(2025, 9, 20, 14, 15),
+        status: OrderStatus.completed,
+        progress: 1.0,
+        nextStep: 'All set',
+        amountAtShopInr: 450,
+        expectedReady: DateTime(2025, 9, 23),
+      ),
+    ];
+  }
+
+  // --- Timeline seed ------------------------------------------------------
+
+  /// Builds the six-stage tracking timeline for an in-progress order.
+  ///
+  /// Done/current steps carry timestamps; pending steps have `null`.
+  static List<TimelineStep> _buildTimeline() {
+    return [
+      TimelineStep(
+        stage: TimelineStage.orderPlaced,
+        label: 'Order placed',
+        state: StepState.done,
+        timestamp: DateTime(2025, 10, 20, 11, 20),
+      ),
+      TimelineStep(
+        stage: TimelineStage.measurementDone,
+        label: 'Measurement done',
+        state: StepState.done,
+        timestamp: DateTime(2025, 10, 21, 17, 45),
+      ),
+      TimelineStep(
+        stage: TimelineStage.stitchingStarted,
+        label: 'Stitching started',
+        state: StepState.current,
+        timestamp: DateTime(2025, 10, 23),
+      ),
+      const TimelineStep(
+        stage: TimelineStage.stitchingFinished,
+        label: 'Stitching finished',
+        state: StepState.pending,
+      ),
+      const TimelineStep(
+        stage: TimelineStage.finalTouchUp,
+        label: 'Final touch-up',
+        state: StepState.pending,
+      ),
+      const TimelineStep(
+        stage: TimelineStage.allSet,
+        label: 'All set',
+        state: StepState.pending,
+      ),
+    ];
+  }
+
+  // --- OrderRepository ----------------------------------------------------
+
+  @override
+  Future<List<Order>> getOrders({OrderBucket bucket = OrderBucket.active}) async {
+    return switch (bucket) {
+      OrderBucket.active => List<Order>.unmodifiable(_active),
+      OrderBucket.completed => List<Order>.unmodifiable(_completed),
+    };
+  }
+
+  @override
+  Future<Order> getOrderById(String orderId) async {
+    for (final order in [..._active, ..._completed]) {
+      if (order.id == orderId) return order;
+    }
+    throw NotFoundFailure('No order with id "$orderId".');
+  }
+
+  @override
+  Future<Order> placeOrder(OrderDraft draft) async {
+    final id = 'SN-${_nextOrderNumber++}';
+    final now = DateTime.now();
+    final order = Order(
+      id: id,
+      product: draft.product,
+      placedDate: now,
+      status: OrderStatus.placed,
+      progress: 0.05,
+      nextStep: 'Measurement done',
+      amountAtShopInr: draft.product.priceInr,
+      expectedReady: now.add(Duration(days: draft.product.readyInDays)),
+    );
+    _active.insert(0, order);
+    return order;
+  }
+
+  @override
+  Future<List<TimelineStep>> getTimeline(String orderId) async {
+    // Validates the id exists (throws NotFoundFailure when unknown).
+    await getOrderById(orderId);
+    return _buildTimeline();
+  }
+}

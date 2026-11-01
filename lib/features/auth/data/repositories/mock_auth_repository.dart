@@ -1,0 +1,74 @@
+import '../../../../core/error/failures.dart';
+import '../../domain/entities/auth_user.dart';
+import '../../domain/entities/otp_session.dart';
+import '../../domain/repositories/auth_repository.dart';
+
+/// In-memory mock implementation of [AuthRepository].
+///
+/// Accepts any mobile number, uses the fixed OTP code `0000`, and never fails
+/// account creation. Intended for local development and testing before a real
+/// backend is wired in.
+class MockAuthRepository implements AuthRepository {
+  /// The fixed OTP code accepted by [verifyOtp] in the mock.
+  static const String _mockOtpCode = '0000';
+
+  /// How long an OTP session remains valid.
+  static const Duration _sessionTtl = Duration(minutes: 5);
+
+  /// Tracks the mobile number associated with each active session id so
+  /// [verifyOtp] can recover the mobile after [sendOtp].
+  final Map<String, String> _sessionMobiles = {};
+
+  AuthUser? _currentUser;
+
+  @override
+  AuthUser? get currentUser => _currentUser;
+
+  @override
+  Future<OtpSession> sendOtp({required String mobile}) async {
+    final now = DateTime.now();
+    final sessionId = 'mock-session-$mobile-${now.microsecondsSinceEpoch}';
+    _sessionMobiles[sessionId] = mobile;
+    return OtpSession(
+      sessionId: sessionId,
+      mobile: mobile,
+      expiresAt: now.add(_sessionTtl),
+    );
+  }
+
+  @override
+  Future<AuthUser> verifyOtp({
+    required String sessionId,
+    required String code,
+  }) async {
+    if (code != _mockOtpCode) {
+      throw const InvalidOtpFailure('Incorrect OTP code.');
+    }
+
+    final mobile = _sessionMobiles[sessionId];
+    final user = AuthUser(
+      id: 'mock-user-${DateTime.now().microsecondsSinceEpoch}',
+      isGuest: false,
+      mobile: mobile,
+    );
+    _currentUser = user;
+    return user;
+  }
+
+  @override
+  Future<AuthUser> createAccount(AuthUser draftUser) async {
+    final user = draftUser.copyWith(
+      id: 'mock-user-${DateTime.now().microsecondsSinceEpoch}',
+      isGuest: false,
+    );
+    _currentUser = user;
+    return user;
+  }
+
+  @override
+  Future<AuthUser> continueAsGuest() async {
+    const user = AuthUser.guest();
+    _currentUser = user;
+    return user;
+  }
+}
