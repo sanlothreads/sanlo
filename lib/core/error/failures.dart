@@ -29,3 +29,9 @@ final class NotFoundFailure extends Failure {
 final class InvalidOtpFailure extends Failure {
   const InvalidOtpFailure([super.message]);
 }
+
+/// Thrown for authentication errors that are not a bad OTP code — e.g. the
+/// verification code could not be sent, or sign-in failed for another reason.
+final class AuthFailure extends Failure {
+  const AuthFailure([super.message]);
+}

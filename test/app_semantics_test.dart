@@ -1,12 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sanlo/app.dart';
+import 'package:sanlo/core/di/service_locator.dart';
+import 'package:sanlo/features/auth/data/repositories/mock_auth_repository.dart';
 
 void main() {
-  testWidgets('SanloApp compiles semantics without parentData dirty errors on startup and tab switches',
+  testWidgets(
+      'SanloApp compiles semantics without parentData dirty errors on startup and tab switches',
       (WidgetTester tester) async {
     final SemanticsHandle handle = tester.ensureSemantics();
 
-    await tester.pumpWidget(const SanloApp());
+    // Inject mock auth so 'Skip' (guest sign-in) runs without a live Firebase.
+    await tester.pumpWidget(
+      SanloApp(locator: ServiceLocator(authRepository: MockAuthRepository())),
+    );
     await tester.pumpAndSettle();
 
     // Tap 'Skip' to continue as guest to Home screen

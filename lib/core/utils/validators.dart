@@ -10,8 +10,8 @@
 class Validators {
   Validators._();
 
-  /// Expected OTP length (matches the mock code `"0000"`).
-  static const int otpLength = 4;
+  /// Expected OTP length. Firebase phone-auth SMS codes are 6 digits.
+  static const int otpLength = 6;
 
   /// Indian mobile numbers are 10 digits locally (the UI adds the +91 prefix).
   static const int indianMobileLength = 10;
@@ -35,8 +35,7 @@ class Validators {
     if (digits.startsWith('+')) digits = digits.substring(1);
     if (digits.startsWith('91') && digits.length > indianMobileLength) {
       digits = digits.substring(2);
-    } else if (digits.startsWith('0') &&
-        digits.length > indianMobileLength) {
+    } else if (digits.startsWith('0') && digits.length > indianMobileLength) {
       digits = digits.substring(1);
     }
     return digits;
@@ -117,7 +116,9 @@ class Validators {
   /// Form-field helper for an in-inches measurement field. Returns `null` when
   /// valid, or an error message otherwise.
   static String? measurementError(String? input) {
-    return isValidMeasurement(input) ? null : 'Enter a valid measurement in inches';
+    return isValidMeasurement(input)
+        ? null
+        : 'Enter a valid measurement in inches';
   }
 
   /// Returns `true` when [input] is a non-empty value after trimming.
@@ -133,7 +134,8 @@ class Validators {
   /// value is present, or a message naming the [fieldLabel].
   ///
   /// Validates Requirement 4.2.
-  static String? requiredError(String? input, {String fieldLabel = 'This field'}) {
+  static String? requiredError(String? input,
+      {String fieldLabel = 'This field'}) {
     return isNonEmpty(input) ? null : '$fieldLabel is required';
   }
 }

@@ -77,8 +77,7 @@ class _SignInScreenState extends State<SignInScreen> {
           builder: (BuildContext context, AuthState state) {
             // Reveal the OTP field once a session exists (code was sent).
             final bool showOtpField = state.session != null;
-            final bool isBusy =
-                state.phase == AuthPhase.sendingOtp ||
+            final bool isBusy = state.phase == AuthPhase.sendingOtp ||
                 state.phase == AuthPhase.verifying ||
                 state.phase == AuthPhase.creating;
             final bool hasError = state.phase == AuthPhase.error;
@@ -243,9 +242,9 @@ class _SignInScreenState extends State<SignInScreen> {
       keyboardType: TextInputType.number,
       inputFormatters: <TextInputFormatter>[
         FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(4),
+        LengthLimitingTextInputFormatter(6),
       ],
-      decoration: const InputDecoration(hintText: '0000'),
+      decoration: const InputDecoration(hintText: '000000'),
     );
   }
 

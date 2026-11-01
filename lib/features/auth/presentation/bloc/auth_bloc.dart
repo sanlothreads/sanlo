@@ -44,12 +44,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
 
     emit(state.copyWith(phase: AuthPhase.sendingOtp, clearError: true));
-    final session = await _authRepository.sendOtp(mobile: event.mobile);
-    emit(state.copyWith(
-      phase: AuthPhase.otpSent,
-      session: session,
-      clearError: true,
-    ));
+    try {
+      final session = await _authRepository.sendOtp(mobile: event.mobile);
+      emit(state.copyWith(
+        phase: AuthPhase.otpSent,
+        session: session,
+        clearError: true,
+      ));
+    } on Failure catch (failure) {
+      emit(state.copyWith(
+        phase: AuthPhase.error,
+        errorMessage: failure.message ?? 'Could not send the OTP.',
+      ));
+    }
   }
 
   /// Verifies the entered code against the active session. Returns early if no
@@ -76,6 +83,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(state.copyWith(
         phase: AuthPhase.error,
         errorMessage: 'Incorrect code',
+      ));
+    } on Failure catch (failure) {
+      emit(state.copyWith(
+        phase: AuthPhase.error,
+        errorMessage: failure.message ?? 'Could not verify the code.',
       ));
     }
   }

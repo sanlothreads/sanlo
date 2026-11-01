@@ -49,5 +49,24 @@
 	<array>
 		<string>tel</string>
 	</array>
+	<!--
+	  Firebase phone-auth reCAPTCHA fallback callback scheme.
+	  Firebase requires the app's "encoded app ID" scheme, derived from
+	  GOOGLE_APP_ID (1:199124552386:ios:4cbc8a554487d49393895b) as
+	  app-1-199124552386-ios-4cbc8a554487d49393895b.
+	  (If you later add a GoogleService-Info.plist that contains
+	  REVERSED_CLIENT_ID, add that scheme here as well.)
+	-->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>app-1-199124552386-ios-4cbc8a554487d49393895b</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
