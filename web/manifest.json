@@ -1,11 +1,11 @@
 {
-    "name": "sanlo",
-    "short_name": "sanlo",
+    "name": "Sanlo",
+    "short_name": "Sanlo",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#9F1D2B",
+    "theme_color": "#9F1D2B",
+    "description": "Sanlo – clothes stitched to your exact measure.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

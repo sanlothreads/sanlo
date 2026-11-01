@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/screens/sign_in_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
+import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/catalog/domain/entities/product.dart';
 import '../../features/catalog/presentation/screens/home_screen.dart';
 import '../../features/catalog/presentation/screens/product_details_screen.dart';
@@ -32,8 +33,16 @@ final GoRouter appRouter = _buildRouter();
 
 GoRouter _buildRouter() {
   return GoRouter(
-    initialLocation: Routes.signInPath,
+    initialLocation: Routes.splashPath,
     routes: <RouteBase>[
+      // --- Splash (shown for 2s, then routes to Sign in) ---------------------
+      GoRoute(
+        path: Routes.splashPath,
+        name: Routes.splashName,
+        builder: (BuildContext context, GoRouterState state) =>
+            const SplashScreen(),
+      ),
+
       // --- Auth (top-level, above the shell) ---------------------------------
       GoRoute(
         path: Routes.signInPath,
@@ -50,12 +59,12 @@ GoRouter _buildRouter() {
 
       // --- 3-tab bottom-navigation shell -------------------------------------
       StatefulShellRoute.indexedStack(
-        builder:
-            (
-              BuildContext context,
-              GoRouterState state,
-              StatefulNavigationShell navigationShell,
-            ) => MainShellScreen(navigationShell: navigationShell),
+        builder: (
+          BuildContext context,
+          GoRouterState state,
+          StatefulNavigationShell navigationShell,
+        ) =>
+            MainShellScreen(navigationShell: navigationShell),
         branches: <StatefulShellBranch>[
           StatefulShellBranch(
             routes: <RouteBase>[

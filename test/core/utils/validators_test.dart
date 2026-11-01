@@ -29,15 +29,16 @@ void main() {
   });
 
   group('isValidOtp', () {
-    test('accepts 4-digit codes including 0000', () {
-      expect(Validators.isValidOtp('0000'), isTrue);
-      expect(Validators.isValidOtp('1234'), isTrue);
+    test('accepts 6-digit codes including 000000', () {
+      expect(Validators.isValidOtp('000000'), isTrue);
+      expect(Validators.isValidOtp('123456'), isTrue);
     });
 
     test('rejects wrong length or non-digits', () {
       expect(Validators.isValidOtp('123'), isFalse);
-      expect(Validators.isValidOtp('12345'), isFalse);
-      expect(Validators.isValidOtp('12a4'), isFalse);
+      expect(Validators.isValidOtp('1234'), isFalse);
+      expect(Validators.isValidOtp('1234567'), isFalse);
+      expect(Validators.isValidOtp('12a456'), isFalse);
       expect(Validators.isValidOtp(null), isFalse);
     });
   });

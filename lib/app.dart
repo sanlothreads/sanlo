@@ -25,11 +25,16 @@ import 'features/profile/domain/repositories/profile_repository.dart';
 ///  * A global [AuthBloc] is provided above the router as well, since the sign
 ///    in / sign up screens read it with `context.read<AuthBloc>()`.
 class SanloApp extends StatelessWidget {
-  const SanloApp({super.key});
+  const SanloApp({super.key, this.locator});
+
+  /// Optional composition root. Production leaves this null and a default
+  /// [ServiceLocator] (Firebase-backed auth) is created. Tests may inject a
+  /// locator wired with mock repositories so they run without a live Firebase.
+  final ServiceLocator? locator;
 
   @override
   Widget build(BuildContext context) {
-    final ServiceLocator locator = ServiceLocator();
+    final ServiceLocator locator = this.locator ?? ServiceLocator();
     return MultiRepositoryProvider(
       providers: <RepositoryProvider>[
         RepositoryProvider<AuthRepository>.value(

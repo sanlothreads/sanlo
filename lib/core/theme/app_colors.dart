@@ -28,6 +28,12 @@ abstract final class AppColors {
   /// Foreground color placed on top of [primary].
   static const Color onPrimary = Color(0xFFFFFFFF);
 
+  /// Deep brand red used for the splash screen and app icon background.
+  static const Color brandRed = Color(0xFF9F1D2B);
+
+  /// Warm cream used for the logo mark and text on [brandRed].
+  static const Color brandCream = Color(0xFFF7F0E6);
+
   // ---------------------------------------------------------------------------
   // Surfaces / backgrounds
   // ---------------------------------------------------------------------------

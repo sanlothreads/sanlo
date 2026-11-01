@@ -1,0 +1,181 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../../../core/error/failures.dart';
+import '../../domain/entities/auth_user.dart';
+import '../../domain/entities/otp_session.dart';
+import '../../domain/repositories/auth_repository.dart';
+
+/// Firebase-backed implementation of [AuthRepository] using phone-number OTP
+/// sign-in ([FirebaseAuth.verifyPhoneNumber] / [signInWithCredential]).
+///
+/// Firebase's phone flow is callback-based, so this class bridges it onto the
+/// app's session model:
+///
+///  * [sendOtp] calls [FirebaseAuth.verifyPhoneNumber] and completes once
+///    Firebase returns a `verificationId` (via the `codeSent` callback). That
+///    id becomes the [OtpSession.sessionId], and is cached so [verifyOtp] can
+///    recover it.
+///  * [verifyOtp] rebuilds a [PhoneAuthCredential] from the cached
+///    verification id plus the user-entered code, signs in, and maps the
+///    resulting [User] to an [AuthUser].
+///
+/// On an invalid/expired code Firebase throws a [FirebaseAuthException]
+/// (`invalid-verification-code` / `session-expired`), which is translated to
+/// the domain-level [InvalidOtpFailure] the presentation layer already handles.
+class FirebaseAuthRepository implements AuthRepository {
+  FirebaseAuthRepository({FirebaseAuth? firebaseAuth})
+      : _injectedAuth = firebaseAuth;
+
+  /// An explicitly injected instance (used in tests); when null we fall back to
+  /// [FirebaseAuth.instance], resolved lazily so merely constructing this
+  /// repository does not require Firebase to be initialised yet.
+  final FirebaseAuth? _injectedAuth;
+
+  FirebaseAuth get _auth => _injectedAuth ?? FirebaseAuth.instance;
+
+  /// How long Firebase waits for automatic SMS retrieval / resend window.
+  static const Duration _codeTimeout = Duration(seconds: 60);
+
+  /// Maps a Firebase `verificationId` (our session id) to the phone number it
+  /// was sent to, so [verifyOtp] can populate [AuthUser.mobile].
+  final Map<String, String> _sessionMobiles = {};
+
+  @override
+  AuthUser? get currentUser => _mapUser(_auth.currentUser);
+
+  /// Formats a 10-digit Indian local number into E.164 (`+91XXXXXXXXXX`).
+  ///
+  /// Accepts input that already carries a `+91`/`91` prefix and normalises it,
+  /// so callers may pass either the raw 10-digit part or a prefixed string.
+  String _toE164(String mobile) {
+    var digits = mobile.replaceAll(RegExp(r'[\s()\-]'), '');
+    if (digits.startsWith('+')) digits = digits.substring(1);
+    if (digits.startsWith('91') && digits.length > 10) {
+      digits = digits.substring(2);
+    } else if (digits.startsWith('0') && digits.length > 10) {
+      digits = digits.substring(1);
+    }
+    return '+91$digits';
+  }
+
+  @override
+  Future<OtpSession> sendOtp({required String mobile}) async {
+    final phoneNumber = _toE164(mobile);
+    final completer = Completer<OtpSession>();
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        timeout: _codeTimeout,
+        verificationCompleted: (PhoneAuthCredential credential) {},
+        verificationFailed: (FirebaseAuthException e) {
+          if (!completer.isCompleted) {
+            completer.completeError(
+              AuthFailure(e.message ?? 'Could not send the verification code.'),
+            );
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          _sessionMobiles[verificationId] = phoneNumber;
+          if (!completer.isCompleted) {
+            completer.complete(
+              OtpSession(
+                sessionId: verificationId,
+                mobile: phoneNumber,
+                expiresAt: DateTime.now().add(_codeTimeout),
+              ),
+            );
+          }
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          // Keep the latest verification id so a late-entered code still works.
+          _sessionMobiles[verificationId] = phoneNumber;
+          if (!completer.isCompleted) {
+            completer.complete(
+              OtpSession(
+                sessionId: verificationId,
+                mobile: phoneNumber,
+                expiresAt: DateTime.now().add(_codeTimeout),
+              ),
+            );
+          }
+        },
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!completer.isCompleted) {
+        completer.completeError(
+          AuthFailure(e.message ?? 'Could not send the verification code.'),
+        );
+      }
+    } catch (e) {
+      // Surface any other failure to the caller instead of hanging the flow.
+      if (!completer.isCompleted) {
+        completer.completeError(AuthFailure(e.toString()));
+      }
+    }
+    return completer.future;
+  }
+
+  @override
+  Future<AuthUser> verifyOtp({
+    required String sessionId,
+    required String code,
+  }) async {
+    final credential = PhoneAuthProvider.credential(
+      verificationId: sessionId,
+      smsCode: code,
+    );
+
+    try {
+      final result = await _auth.signInWithCredential(credential);
+      final user = _mapUser(result.user);
+      if (user == null) {
+        throw const AuthFailure('Sign-in failed. Please try again.');
+      }
+      return user;
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'invalid-verification-code':
+        case 'session-expired':
+        case 'invalid-verification-id':
+          throw const InvalidOtpFailure('Incorrect or expired OTP code.');
+        default:
+          throw AuthFailure(e.message ?? 'Could not verify the code.');
+      }
+    }
+  }
+
+  @override
+  Future<AuthUser> createAccount(AuthUser draftUser) async {
+    // Account creation still flows through phone sign-in; once signed in we
+    // merge the signed-in identity with the profile details from the draft.
+    final current = _auth.currentUser;
+    return draftUser.copyWith(
+      id: current?.uid,
+      isGuest: false,
+      mobile: current?.phoneNumber ?? draftUser.mobile,
+    );
+  }
+
+  @override
+  Future<AuthUser> continueAsGuest() async {
+    final result = await _auth.signInAnonymously();
+    return AuthUser(
+      id: result.user?.uid,
+      isGuest: true,
+    );
+  }
+
+  /// Maps a Firebase [User] to the domain [AuthUser]; `null` stays `null`.
+  AuthUser? _mapUser(User? user) {
+    if (user == null) return null;
+    return AuthUser(
+      id: user.uid,
+      isGuest: user.isAnonymous,
+      mobile: user.phoneNumber ??
+          (_sessionMobiles.isNotEmpty ? _sessionMobiles.values.last : null),
+      email: user.email,
+    );
+  }
+}

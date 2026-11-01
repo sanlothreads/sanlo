@@ -1,3 +1,4 @@
+import '../../features/auth/data/repositories/firebase_auth_repository.dart';
 import '../../features/auth/data/repositories/mock_auth_repository.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/catalog/data/repositories/mock_product_repository.dart';
@@ -25,9 +26,14 @@ import '../../features/profile/domain/repositories/profile_repository.dart';
 /// no presentation or domain code needs to change because it depends only on
 /// the interfaces exposed below.
 class ServiceLocator {
-  /// Wires each concrete mock repository to its domain interface.
-  ServiceLocator()
-      : authRepository = MockAuthRepository(),
+  /// Wires each repository to its domain interface.
+  ///
+  /// Authentication defaults to the Firebase-backed [FirebaseAuthRepository];
+  /// pass [authRepository] (e.g. a [MockAuthRepository]) to override it, which
+  /// is how widget tests run without a live Firebase. The catalog, orders, and
+  /// profile repositories remain in-memory mocks for now.
+  ServiceLocator({AuthRepository? authRepository})
+      : authRepository = authRepository ?? FirebaseAuthRepository(),
         productRepository = MockProductRepository(),
         orderRepository = MockOrderRepository(),
         profileRepository = MockProfileRepository();
