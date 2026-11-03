@@ -29,6 +29,9 @@ abstract interface class AuthRepository {
   /// Starts a guest session (no credentials).
   Future<AuthUser> continueAsGuest();
 
+  /// Signs the current user out, ending their session.
+  Future<void> signOut();
+
   /// Currently signed-in user, or `null` if none.
   AuthUser? get currentUser;
 }

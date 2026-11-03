@@ -47,6 +47,7 @@ class PrimaryButton extends StatelessWidget {
             width: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
+              color: AppColors.primary,
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.onPrimary),
             ),
           )
@@ -54,10 +55,7 @@ class PrimaryButton extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton(
-        onPressed: effectiveOnPressed,
-        child: child,
-      ),
+      child: ElevatedButton(onPressed: effectiveOnPressed, child: child),
     );
   }
 

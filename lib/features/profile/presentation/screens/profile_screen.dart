@@ -6,6 +6,8 @@ import 'package:sanlo/core/entities/gender.dart';
 import 'package:sanlo/core/theme/app_colors.dart';
 import 'package:sanlo/core/theme/app_spacing.dart';
 import 'package:sanlo/core/widgets/section_card.dart';
+import 'package:sanlo/features/auth/domain/entities/auth_user.dart';
+import 'package:sanlo/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sanlo/features/profile/domain/entities/user_profile.dart';
 import 'package:sanlo/features/profile/domain/repositories/profile_repository.dart';
 import 'package:sanlo/features/profile/presentation/cubit/profile_cubit.dart';
@@ -52,10 +54,18 @@ class _ProfileView extends StatelessWidget {
               return _ErrorBody(message: state.error!);
             }
 
-            final UserProfile? profile = state.profile;
-            if (profile == null) {
+            final UserProfile? baseProfile = state.profile;
+            if (baseProfile == null) {
               return const _ErrorBody(message: 'Profile unavailable');
             }
+
+            final AuthState auth = context.watch<AuthBloc>().state;
+            final bool signedIn = auth.isAuthenticated;
+            // When a real user is signed in, show *their* details rather than
+            // the seeded mock profile. Stats stay from the profile repository.
+            final UserProfile profile = signedIn
+                ? _mergeAuth(baseProfile, auth.user!)
+                : baseProfile;
 
             return ListView(
               padding: const EdgeInsets.symmetric(
@@ -63,16 +73,62 @@ class _ProfileView extends StatelessWidget {
                 vertical: AppSpacing.md,
               ),
               children: <Widget>[
-                _TitleRow(editing: state.editing),
+                _TitleRow(editing: state.editing, signedIn: signedIn),
                 const SizedBox(height: AppSpacing.lg),
                 _ProfileHeader(profile: profile),
                 const SizedBox(height: AppSpacing.lg),
                 _StatsRow(profile: profile),
                 const SizedBox(height: AppSpacing.lg),
                 _PersonalDetails(profile: profile),
+                if (signedIn) ...<Widget>[
+                  const SizedBox(height: AppSpacing.lg),
+                  const _LogoutButton(),
+                ],
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  /// Overlays the signed-in user's identity onto the displayed profile, keeping
+  /// the order stats from [base]. Empty name parts fall back to the base so the
+  /// header never shows blanks.
+  static UserProfile _mergeAuth(UserProfile base, AuthUser user) {
+    final String first = (user.firstName ?? '').trim();
+    final String last = (user.lastName ?? '').trim();
+    return base.copyWith(
+      firstName: first.isNotEmpty ? first : base.firstName,
+      lastName: last.isNotEmpty ? last : base.lastName,
+      mobile: (user.mobile ?? '').trim().isNotEmpty ? user.mobile : base.mobile,
+      email: user.email ?? base.email,
+      gender: user.gender ?? base.gender,
+    );
+  }
+}
+
+/// The "Log out" button shown at the bottom of the Profile screen for a
+/// signed-in user. Dispatches [SignOutRequested] and returns to Sign in.
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () {
+          context.read<AuthBloc>().add(const SignOutRequested());
+          context.goNamed('signIn');
+        },
+        icon: const Icon(Icons.logout_rounded),
+        label: const Text('Log out'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.error,
+          side: const BorderSide(color: AppColors.error),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdAll),
         ),
       ),
     );
@@ -82,9 +138,13 @@ class _ProfileView extends StatelessWidget {
 /// The screen title "Profile" with an "Edit" tonal button and a subtle
 /// "Sign in" affordance (Requirement 7.2) on the trailing side.
 class _TitleRow extends StatelessWidget {
-  const _TitleRow({required this.editing});
+  const _TitleRow({required this.editing, required this.signedIn});
 
   final bool editing;
+
+  /// Whether a real user is signed in. When true the "Sign in" affordance is
+  /// hidden (logging out happens via the Log out button instead).
+  final bool signedIn;
 
   @override
   Widget build(BuildContext context) {
@@ -101,17 +161,19 @@ class _TitleRow extends StatelessWidget {
             ),
           ),
         ),
-        TextButton(
-          onPressed: () => context.pushNamed('signIn'),
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        if (!signedIn) ...<Widget>[
+          TextButton(
+            onPressed: () => context.pushNamed('signIn'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text('Sign in'),
           ),
-          child: const Text('Sign in'),
-        ),
-        const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.sm),
+        ],
         FilledButton.tonal(
           onPressed: () => context.read<ProfileCubit>().startEditing(),
           child: Text(editing ? 'Editing' : 'Edit'),
@@ -225,17 +287,11 @@ class _StatsRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Expanded(
-            child: _StatTile(
-              value: profile.totalOrders,
-              label: 'Total orders',
-            ),
+            child: _StatTile(value: profile.totalOrders, label: 'Total orders'),
           ),
           const SizedBox(width: AppSpacing.smd),
           Expanded(
-            child: _StatTile(
-              value: profile.inProgress,
-              label: 'In progress',
-            ),
+            child: _StatTile(value: profile.inProgress, label: 'In progress'),
           ),
           const SizedBox(width: AppSpacing.smd),
           Expanded(
@@ -324,10 +380,7 @@ class _PersonalDetails extends StatelessWidget {
           const _RowDivider(),
           _DetailRow(label: 'Email', value: profile.email ?? '—'),
           const _RowDivider(),
-          _DetailRow(
-            label: 'Gender',
-            value: _genderLabel(profile.gender),
-          ),
+          _DetailRow(label: 'Gender', value: _genderLabel(profile.gender)),
         ],
       ),
     );

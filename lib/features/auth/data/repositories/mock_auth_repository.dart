@@ -86,4 +86,9 @@ class MockAuthRepository implements AuthRepository {
     _currentUser = user;
     return user;
   }
+
+  @override
+  Future<void> signOut() async {
+    _currentUser = null;
+  }
 }

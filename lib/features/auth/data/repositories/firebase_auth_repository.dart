@@ -215,6 +215,9 @@ class FirebaseAuthRepository implements AuthRepository {
     return AuthUser(id: result.user?.uid, isGuest: true);
   }
 
+  @override
+  Future<void> signOut() => _auth.signOut();
+
   /// Maps a Firebase [User] to the domain [AuthUser]; `null` stays `null`.
   AuthUser? _mapUser(User? user) {
     if (user == null) return null;

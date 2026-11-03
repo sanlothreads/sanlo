@@ -41,6 +41,18 @@ final class GuestRequested extends AuthEvent {
   const GuestRequested();
 }
 
+/// Dispatched once at startup to restore any persisted session. If a user is
+/// already signed in (Firebase keeps the session across restarts), the bloc
+/// loads their stored profile and moves to [AuthPhase.authenticated].
+final class AppStarted extends AuthEvent {
+  const AppStarted();
+}
+
+/// Signs the current user out and returns the flow to a signed-out state.
+final class SignOutRequested extends AuthEvent {
+  const SignOutRequested();
+}
+
 /// Submits a sign-up draft to create a new account.
 final class AccountSubmitted extends AuthEvent {
   const AccountSubmitted(this.draft);

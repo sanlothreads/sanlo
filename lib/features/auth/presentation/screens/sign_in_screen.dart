@@ -198,7 +198,10 @@ class _SignInScreenState extends State<SignInScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.smd,
+          ),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: AppColors.surfaceMuted,

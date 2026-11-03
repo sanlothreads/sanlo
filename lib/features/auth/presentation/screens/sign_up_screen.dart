@@ -40,8 +40,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
-  /// Currently selected gender; defaults to [Gender.female] per the mockup.
-  Gender _selectedGender = Gender.female;
+  /// Currently selected gender; defaults to [Gender.male] per the mockup.
+  Gender _selectedGender = Gender.male;
 
   /// Whether the mobile field is locked because it came from a verified OTP
   /// sign-in (true) or is free-form (false, direct "Create an account" entry).
@@ -204,17 +204,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Row(
                   children: <Widget>[
                     _GenderPill(
-                      label: 'Female',
-                      selected: _selectedGender == Gender.female,
-                      onTap: () =>
-                          setState(() => _selectedGender = Gender.female),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _GenderPill(
                       label: 'Male',
                       selected: _selectedGender == Gender.male,
                       onTap: () =>
                           setState(() => _selectedGender = Gender.male),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    _GenderPill(
+                      label: 'Female',
+                      selected: _selectedGender == Gender.female,
+                      onTap: () =>
+                          setState(() => _selectedGender = Gender.female),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     _GenderPill(

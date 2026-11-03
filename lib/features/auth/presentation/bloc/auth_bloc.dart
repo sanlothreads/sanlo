@@ -21,14 +21,51 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({required AuthRepository authRepository})
     : _authRepository = authRepository,
       super(const AuthState.idle()) {
+    on<AppStarted>(_onAppStarted);
     on<OtpRequested>(_onOtpRequested);
     on<OtpVerified>(_onOtpVerified);
     on<GuestRequested>(_onGuestRequested);
     on<AccountSubmitted>(_onAccountSubmitted);
+    on<SignOutRequested>(_onSignOutRequested);
     on<AuthReset>(_onAuthReset);
   }
 
   final AuthRepository _authRepository;
+
+  /// Restores any persisted session at startup. Firebase keeps the signed-in
+  /// user across app restarts, so if one exists (and is not a guest) we load
+  /// their stored profile and move straight to [AuthPhase.authenticated];
+  /// otherwise the flow stays idle and the app shows Sign in.
+  Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
+    final AuthUser? current = _authRepository.currentUser;
+    if (current == null || current.isGuest || current.id == null) {
+      return; // no restorable real session; remain idle
+    }
+
+    emit(state.copyWith(phase: AuthPhase.restoring, clearError: true));
+    try {
+      final AuthUser profile =
+          await _authRepository.loadProfile(current.id!) ?? current;
+      emit(
+        state.copyWith(
+          phase: AuthPhase.authenticated,
+          user: profile,
+          clearError: true,
+        ),
+      );
+    } on Failure {
+      // Could not reach the profile store; keep the signed-in identity so the
+      // app still treats the user as authenticated rather than bouncing them
+      // back to Sign in.
+      emit(
+        state.copyWith(
+          phase: AuthPhase.authenticated,
+          user: current,
+          clearError: true,
+        ),
+      );
+    }
+  }
 
   /// Validates the mobile, then requests an OTP. Invalid numbers surface an
   /// inline error and no code is sent.
@@ -163,6 +200,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         ),
       );
     }
+  }
+
+  /// Signs the current user out, clears the session/user, and moves to
+  /// [AuthPhase.loggedOut] so the UI can route back to Sign in.
+  Future<void> _onSignOutRequested(
+    SignOutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    await _authRepository.signOut();
+    emit(const AuthState(phase: AuthPhase.loggedOut));
   }
 
   /// Resets the flow back to its initial idle state.

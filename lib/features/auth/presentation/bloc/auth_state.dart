@@ -11,6 +11,10 @@ enum AuthPhase {
   /// Nothing in progress; the initial state.
   idle,
 
+  /// A persisted session is being restored at startup (profile load in
+  /// flight). The splash waits for this to resolve before routing.
+  restoring,
+
   /// An OTP send request is in flight.
   sendingOtp,
 
@@ -30,6 +34,9 @@ enum AuthPhase {
 
   /// An account-creation request is in flight.
   creating,
+
+  /// The user signed out; no [AuthState.user] and the app returns to Sign in.
+  loggedOut,
 
   /// An error occurred; [AuthState.errorMessage] describes it.
   error,
@@ -66,6 +73,22 @@ class AuthState extends Equatable {
 
   /// A human-readable error message, present in [AuthPhase.error].
   final String? errorMessage;
+
+  /// Whether a real (non-guest) user is signed in.
+  bool get isAuthenticated =>
+      phase == AuthPhase.authenticated && user != null && !user!.isGuest;
+
+  /// A short display name for the signed-in user: their first name when known,
+  /// otherwise "Guest". Used by the Home greeting header.
+  String get displayName {
+    final AuthUser? u = user;
+    if (u == null || u.isGuest) return 'Guest';
+    final String first = (u.firstName ?? '').trim();
+    if (first.isNotEmpty) return first;
+    final String last = (u.lastName ?? '').trim();
+    if (last.isNotEmpty) return last;
+    return 'Guest';
+  }
 
   /// Returns a copy with the given fields replaced.
   ///

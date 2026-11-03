@@ -10,6 +10,7 @@ import 'package:sanlo/features/catalog/domain/entities/product.dart';
 import 'package:sanlo/features/catalog/domain/repositories/product_repository.dart';
 import 'package:sanlo/features/catalog/presentation/cubit/home_cubit.dart';
 import 'package:sanlo/features/catalog/presentation/cubit/home_state.dart';
+import 'package:sanlo/features/auth/presentation/bloc/auth_bloc.dart';
 
 /// The Home tab — the catalog browsing screen ("Home / all categories" mockup).
 ///
@@ -70,7 +71,9 @@ class _HomeView extends StatelessWidget {
   }
 }
 
-/// Greeting header with a top-right guest "Sign in" button.
+/// Greeting header. Shows "Hello, {name}" for a signed-in user (hiding the
+/// Sign in button), or "Hello, Guest" with a top-right "Sign in" button
+/// otherwise. Driven by the app-wide [AuthBloc].
 class _Header extends StatelessWidget {
   const _Header();
 
@@ -78,44 +81,52 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Hello, Guest',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (BuildContext context, AuthState auth) {
+        final bool signedIn = auth.isAuthenticated;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      'Hello, ${auth.displayName}',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'What shall we stitch?',
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'What shall we stitch?',
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+              // Only guests see the Sign in button; signed-in users don't.
+              if (!signedIn) ...<Widget>[
+                const SizedBox(width: AppSpacing.sm),
+                FilledButton.tonal(
+                  onPressed: () => context.pushNamed('signIn'),
+                  child: const Text('Sign in'),
                 ),
               ],
-            ),
+            ],
           ),
-          const SizedBox(width: AppSpacing.sm),
-          FilledButton.tonal(
-            onPressed: () => context.pushNamed('signIn'),
-            child: const Text('Sign in'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
