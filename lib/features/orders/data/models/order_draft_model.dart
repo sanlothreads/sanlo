@@ -20,16 +20,17 @@ class OrderDraftModel {
 
   factory OrderDraftModel.fromJson(Map<String, dynamic> json) {
     return OrderDraftModel(
-      product:
-          ProductModel.fromJson(json['product'] as Map<String, dynamic>),
+      product: ProductModel.fromJson(json['product'] as Map<String, dynamic>),
       details: json['details'] == null
           ? null
           : CustomerDetailsModel.fromJson(
-              json['details'] as Map<String, dynamic>),
+              json['details'] as Map<String, dynamic>,
+            ),
       measurements: json['measurements'] == null
           ? null
           : MeasurementSetModel.fromJson(
-              json['measurements'] as Map<String, dynamic>),
+              json['measurements'] as Map<String, dynamic>,
+            ),
     );
   }
 

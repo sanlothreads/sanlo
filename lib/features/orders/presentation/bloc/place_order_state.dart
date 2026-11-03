@@ -52,8 +52,9 @@ class PlaceOrderState extends Equatable {
     return PlaceOrderState(
       step: step ?? this.step,
       draft: identical(draft, _unset) ? this.draft : draft as OrderDraft?,
-      placedOrder:
-          identical(placedOrder, _unset) ? this.placedOrder : placedOrder as Order?,
+      placedOrder: identical(placedOrder, _unset)
+          ? this.placedOrder
+          : placedOrder as Order?,
       errorMessage: identical(errorMessage, _unset)
           ? this.errorMessage
           : errorMessage as String?,

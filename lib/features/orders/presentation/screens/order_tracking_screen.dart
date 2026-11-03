@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/phone_launcher.dart';
 import '../../../../core/widgets/image_placeholder.dart';
 import '../../../../core/widgets/order_timeline.dart';
+import '../../../../core/widgets/responsive_center.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/repositories/order_repository.dart';
@@ -68,9 +69,11 @@ class _OrderTrackingView extends StatelessWidget {
             ),
             title: Text('Order #$titleId'),
           ),
-          body: state.loading && state.order == null
-              ? const Center(child: CircularProgressIndicator())
-              : _LoadedBody(state: state),
+          body: ResponsiveCenter(
+            child: state.loading && state.order == null
+                ? const Center(child: CircularProgressIndicator())
+                : _LoadedBody(state: state),
+          ),
         );
       },
     );
@@ -263,8 +266,9 @@ class _NotFoundView extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               'We could not find that order.',
-              style: textTheme.bodyMedium
-                  ?.copyWith(color: AppColors.textSecondary),
+              style: textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
             TextButton(

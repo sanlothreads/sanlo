@@ -15,23 +15,14 @@ class CategoryModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'kind': kind,
-      'label': label,
-    };
+    return {'kind': kind, 'label': label};
   }
 
   factory CategoryModel.fromEntity(Category entity) {
-    return CategoryModel(
-      kind: entity.kind.name,
-      label: entity.label,
-    );
+    return CategoryModel(kind: entity.kind.name, label: entity.label);
   }
 
   Category toEntity() {
-    return Category(
-      kind: CategoryKind.values.byName(kind),
-      label: label,
-    );
+    return Category(kind: CategoryKind.values.byName(kind), label: label);
   }
 }

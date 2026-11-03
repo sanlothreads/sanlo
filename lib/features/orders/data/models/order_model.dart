@@ -30,8 +30,7 @@ class OrderModel {
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
       id: json['id'] as String,
-      product:
-          ProductModel.fromJson(json['product'] as Map<String, dynamic>),
+      product: ProductModel.fromJson(json['product'] as Map<String, dynamic>),
       placedDate: json['placedDate'] as String,
       status: json['status'] as String,
       progress: (json['progress'] as num).toDouble(),

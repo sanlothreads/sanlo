@@ -18,13 +18,12 @@ class OrdersCubit extends Cubit<OrdersState> {
     emit(state.copyWith(loading: true));
     try {
       final active = await _repository.getOrders(bucket: OrderBucket.active);
-      final completed =
-          await _repository.getOrders(bucket: OrderBucket.completed);
-      emit(state.copyWith(
-        loading: false,
-        active: active,
-        completed: completed,
-      ));
+      final completed = await _repository.getOrders(
+        bucket: OrderBucket.completed,
+      );
+      emit(
+        state.copyWith(loading: false, active: active, completed: completed),
+      );
     } catch (e) {
       emit(state.copyWith(loading: false, error: e.toString()));
     }

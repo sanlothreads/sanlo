@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/responsive_center.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/step_indicator.dart';
 import '../../domain/entities/measurement_set.dart';
@@ -56,23 +57,31 @@ class _OrderMeasurementsStepScreenState
   void initState() {
     super.initState();
     // Prefill from the existing draft measurements (edit case).
-    final MeasurementSet? measurements =
-        context.read<PlaceOrderBloc>().state.draft?.measurements;
+    final MeasurementSet? measurements = context
+        .read<PlaceOrderBloc>()
+        .state
+        .draft
+        ?.measurements;
     if (measurements != null) {
       _knowsMeasurements = measurements.knowsMeasurements;
     }
     _bustController = TextEditingController(text: _fmt(measurements?.bust));
     _waistController = TextEditingController(text: _fmt(measurements?.waist));
-    _shoulderController =
-        TextEditingController(text: _fmt(measurements?.shoulder));
-    _sleeveLengthController =
-        TextEditingController(text: _fmt(measurements?.sleeveLength));
-    _armholeController =
-        TextEditingController(text: _fmt(measurements?.armhole));
-    _blouseLengthController =
-        TextEditingController(text: _fmt(measurements?.blouseLength));
-    _designNotesController =
-        TextEditingController(text: measurements?.designNotes ?? '');
+    _shoulderController = TextEditingController(
+      text: _fmt(measurements?.shoulder),
+    );
+    _sleeveLengthController = TextEditingController(
+      text: _fmt(measurements?.sleeveLength),
+    );
+    _armholeController = TextEditingController(
+      text: _fmt(measurements?.armhole),
+    );
+    _blouseLengthController = TextEditingController(
+      text: _fmt(measurements?.blouseLength),
+    );
+    _designNotesController = TextEditingController(
+      text: measurements?.designNotes ?? '',
+    );
   }
 
   /// Formats a nullable measurement for prefilling a text field, dropping a
@@ -136,8 +145,8 @@ class _OrderMeasurementsStepScreenState
     }
 
     context.read<PlaceOrderBloc>().add(
-          MeasurementsSubmitted(measurements: measurements),
-        );
+      MeasurementsSubmitted(measurements: measurements),
+    );
 
     context.pushNamed('orderReview');
   }
@@ -151,102 +160,102 @@ class _OrderMeasurementsStepScreenState
         title: const Text('Place order'),
       ),
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    AppSpacing.lg,
-                  ),
-                  children: <Widget>[
-                    const StepIndicator(
-                      currentStep: 2,
-                      totalSteps: 3,
-                      label: 'Measurements',
+        child: ResponsiveCenter(
+          child: Column(
+            children: <Widget>[
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      AppSpacing.md,
+                      AppSpacing.md,
+                      AppSpacing.lg,
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _OptionCard(
-                      title: 'I know my measurements',
-                      subtitle: 'Enter them now and we start sooner.',
-                      selected: _knowsMeasurements,
-                      onTap: () =>
-                          setState(() => _knowsMeasurements = true),
-                    ),
-                    const SizedBox(height: AppSpacing.smd),
-                    _OptionCard(
-                      title: 'Not sure',
-                      subtitle: "Visit the shop and we'll measure you.",
-                      selected: !_knowsMeasurements,
-                      onTap: () =>
-                          setState(() => _knowsMeasurements = false),
-                    ),
-                    if (_knowsMeasurements) ...<Widget>[
+                    children: <Widget>[
+                      const StepIndicator(
+                        currentStep: 2,
+                        totalSteps: 3,
+                        label: 'Measurements',
+                      ),
                       const SizedBox(height: AppSpacing.lg),
-                      _MeasurementsHeader(),
-                      const SizedBox(height: AppSpacing.md),
-                      _MeasurementsGrid(
-                        fields: <_MeasurementFieldData>[
-                          _MeasurementFieldData(
-                            label: 'Bust',
-                            hint: '34',
-                            controller: _bustController,
-                          ),
-                          _MeasurementFieldData(
-                            label: 'Waist',
-                            hint: '28',
-                            controller: _waistController,
-                          ),
-                          _MeasurementFieldData(
-                            label: 'Shoulder',
-                            hint: '14',
-                            controller: _shoulderController,
-                          ),
-                          _MeasurementFieldData(
-                            label: 'Sleeve length',
-                            hint: '10',
-                            controller: _sleeveLengthController,
-                          ),
-                          _MeasurementFieldData(
-                            label: 'Armhole',
-                            hint: '16',
-                            controller: _armholeController,
-                          ),
-                          _MeasurementFieldData(
-                            label: 'Blouse length',
-                            hint: '15',
-                            controller: _blouseLengthController,
-                          ),
-                        ],
-                        validator: _measurementValidator,
+                      _OptionCard(
+                        title: 'I know my measurements',
+                        subtitle: 'Enter them now and we start sooner.',
+                        selected: _knowsMeasurements,
+                        onTap: () => setState(() => _knowsMeasurements = true),
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                      _FieldLabel('Design notes (optional)'),
-                      const SizedBox(height: AppSpacing.sm),
-                      TextFormField(
-                        controller: _designNotesController,
-                        keyboardType: TextInputType.multiline,
-                        minLines: 3,
-                        maxLines: 5,
-                        textCapitalization: TextCapitalization.sentences,
-                        decoration: const InputDecoration(
-                          hintText: 'e.g. deep back neck, puff sleeves',
+                      const SizedBox(height: AppSpacing.smd),
+                      _OptionCard(
+                        title: 'Not sure',
+                        subtitle: "Visit the shop and we'll measure you.",
+                        selected: !_knowsMeasurements,
+                        onTap: () => setState(() => _knowsMeasurements = false),
+                      ),
+                      if (_knowsMeasurements) ...<Widget>[
+                        const SizedBox(height: AppSpacing.lg),
+                        _MeasurementsHeader(),
+                        const SizedBox(height: AppSpacing.md),
+                        _MeasurementsGrid(
+                          fields: <_MeasurementFieldData>[
+                            _MeasurementFieldData(
+                              label: 'Bust',
+                              hint: '34',
+                              controller: _bustController,
+                            ),
+                            _MeasurementFieldData(
+                              label: 'Waist',
+                              hint: '28',
+                              controller: _waistController,
+                            ),
+                            _MeasurementFieldData(
+                              label: 'Shoulder',
+                              hint: '14',
+                              controller: _shoulderController,
+                            ),
+                            _MeasurementFieldData(
+                              label: 'Sleeve length',
+                              hint: '10',
+                              controller: _sleeveLengthController,
+                            ),
+                            _MeasurementFieldData(
+                              label: 'Armhole',
+                              hint: '16',
+                              controller: _armholeController,
+                            ),
+                            _MeasurementFieldData(
+                              label: 'Blouse length',
+                              hint: '15',
+                              controller: _blouseLengthController,
+                            ),
+                          ],
+                          validator: _measurementValidator,
                         ),
-                      ),
-                    ] else ...<Widget>[
-                      const SizedBox(height: AppSpacing.md),
-                      _NotSureNote(),
+                        const SizedBox(height: AppSpacing.md),
+                        _FieldLabel('Design notes (optional)'),
+                        const SizedBox(height: AppSpacing.sm),
+                        TextFormField(
+                          controller: _designNotesController,
+                          keyboardType: TextInputType.multiline,
+                          minLines: 3,
+                          maxLines: 5,
+                          textCapitalization: TextCapitalization.sentences,
+                          decoration: const InputDecoration(
+                            hintText: 'e.g. deep back neck, puff sleeves',
+                          ),
+                        ),
+                      ] else ...<Widget>[
+                        const SizedBox(height: AppSpacing.md),
+                        _NotSureNote(),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-            _BottomBar(onReview: _onReview),
-          ],
+              _BottomBar(onReview: _onReview),
+            ],
+          ),
         ),
       ),
     );
@@ -307,8 +316,9 @@ class _OptionCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       subtitle,
-                      style: textTheme.bodySmall
-                          ?.copyWith(color: AppColors.textSecondary),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -366,15 +376,11 @@ class _MeasurementsHeader extends StatelessWidget {
       textBaseline: TextBaseline.alphabetic,
       children: <Widget>[
         Expanded(
-          child: Text(
-            'Blouse measurements',
-            style: textTheme.titleMedium,
-          ),
+          child: Text('Blouse measurements', style: textTheme.titleMedium),
         ),
         Text(
           'in inches',
-          style: textTheme.bodySmall
-              ?.copyWith(color: AppColors.textSecondary),
+          style: textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
         ),
       ],
     );
@@ -396,10 +402,7 @@ class _MeasurementFieldData {
 
 /// A responsive 2-column grid of labelled number fields.
 class _MeasurementsGrid extends StatelessWidget {
-  const _MeasurementsGrid({
-    required this.fields,
-    required this.validator,
-  });
+  const _MeasurementsGrid({required this.fields, required this.validator});
 
   final List<_MeasurementFieldData> fields;
   final FormFieldValidator<String> validator;
@@ -417,10 +420,7 @@ class _MeasurementsGrid extends StatelessWidget {
             for (final _MeasurementFieldData field in fields)
               SizedBox(
                 width: columnWidth,
-                child: _MeasurementField(
-                  data: field,
-                  validator: validator,
-                ),
+                child: _MeasurementField(data: field, validator: validator),
               ),
           ],
         );
@@ -431,10 +431,7 @@ class _MeasurementsGrid extends StatelessWidget {
 
 /// A single labelled numeric measurement field.
 class _MeasurementField extends StatelessWidget {
-  const _MeasurementField({
-    required this.data,
-    required this.validator,
-  });
+  const _MeasurementField({required this.data, required this.validator});
 
   final _MeasurementFieldData data;
   final FormFieldValidator<String> validator;
@@ -454,9 +451,7 @@ class _MeasurementField extends StatelessWidget {
           inputFormatters: <TextInputFormatter>[
             FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
           ],
-          decoration: InputDecoration(
-            hintText: data.hint,
-          ),
+          decoration: InputDecoration(hintText: data.hint),
           validator: validator,
         ),
       ],
@@ -475,8 +470,7 @@ class _NotSureNote extends StatelessWidget {
       child: Text(
         "No problem — we'll take your measurements when you visit the shop. "
         'You can continue placing the order now.',
-        style: textTheme.bodyMedium
-            ?.copyWith(color: AppColors.textSecondary),
+        style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
       ),
     );
   }
@@ -512,9 +506,7 @@ class _BottomBar extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: AppColors.border),
-        ),
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
@@ -524,10 +516,7 @@ class _BottomBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: PrimaryButton(
-          label: 'Review order',
-          onPressed: onReview,
-        ),
+        child: PrimaryButton(label: 'Review order', onPressed: onReview),
       ),
     );
   }

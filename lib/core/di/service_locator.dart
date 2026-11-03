@@ -33,10 +33,10 @@ class ServiceLocator {
   /// is how widget tests run without a live Firebase. The catalog, orders, and
   /// profile repositories remain in-memory mocks for now.
   ServiceLocator({AuthRepository? authRepository})
-      : authRepository = authRepository ?? FirebaseAuthRepository(),
-        productRepository = MockProductRepository(),
-        orderRepository = MockOrderRepository(),
-        profileRepository = MockProfileRepository();
+    : authRepository = authRepository ?? FirebaseAuthRepository(),
+      productRepository = MockProductRepository(),
+      orderRepository = MockOrderRepository(),
+      profileRepository = MockProfileRepository();
 
   /// Authentication: OTP sign-in, account creation, guest sessions.
   final AuthRepository authRepository;

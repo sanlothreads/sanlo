@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/image_placeholder.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/responsive_center.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/step_indicator.dart';
 import '../../../catalog/domain/entities/product.dart';
@@ -43,67 +44,69 @@ class OrderReviewStepScreen extends StatelessWidget {
         title: const Text('Place order'),
       ),
       body: SafeArea(
-        child: BlocConsumer<PlaceOrderBloc, PlaceOrderState>(
-          listenWhen: (PlaceOrderState previous, PlaceOrderState current) =>
-              current.step == OrderStep.placed && current.placedOrder != null,
-          listener: (BuildContext context, PlaceOrderState state) {
-            // Navigate to the confirmation screen once the order is placed,
-            // handing over the new order id via a query parameter.
-            context.goNamed(
-              'orderPlaced',
-              queryParameters: <String, String>{'id': state.placedOrder!.id},
-            );
-          },
-          builder: (BuildContext context, PlaceOrderState state) {
-            if (state.draft?.product == null ||
-                state.draft?.details == null ||
-                state.draft?.measurements == null) {
-              return const Center(child: CircularProgressIndicator());
-            }
+        child: ResponsiveCenter(
+          child: BlocConsumer<PlaceOrderBloc, PlaceOrderState>(
+            listenWhen: (PlaceOrderState previous, PlaceOrderState current) =>
+                current.step == OrderStep.placed && current.placedOrder != null,
+            listener: (BuildContext context, PlaceOrderState state) {
+              // Navigate to the confirmation screen once the order is placed,
+              // handing over the new order id via a query parameter.
+              context.goNamed(
+                'orderPlaced',
+                queryParameters: <String, String>{'id': state.placedOrder!.id},
+              );
+            },
+            builder: (BuildContext context, PlaceOrderState state) {
+              if (state.draft?.product == null ||
+                  state.draft?.details == null ||
+                  state.draft?.measurements == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            final OrderDraftView view = OrderDraftView(state);
+              final OrderDraftView view = OrderDraftView(state);
 
-            return Column(
-              children: <Widget>[
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      AppSpacing.lg,
-                    ),
-                    children: <Widget>[
-                      const StepIndicator(
-                        currentStep: 3,
-                        totalSteps: 3,
-                        label: 'Review',
+              return Column(
+                children: <Widget>[
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.lg,
                       ),
-                      const SizedBox(height: AppSpacing.lg),
-                      _ProductSummary(product: view.product),
-                      const SizedBox(height: AppSpacing.md),
-                      _DetailsSection(details: view.details),
-                      const SizedBox(height: AppSpacing.md),
-                      _MeasurementsSection(measurements: view.measurements),
-                      const SizedBox(height: AppSpacing.md),
-                      _ChargesSection(product: view.product),
-                      const SizedBox(height: AppSpacing.md),
-                      const _PaymentNote(),
-                      if (state.errorMessage != null) ...<Widget>[
+                      children: <Widget>[
+                        const StepIndicator(
+                          currentStep: 3,
+                          totalSteps: 3,
+                          label: 'Review',
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        _ProductSummary(product: view.product),
                         const SizedBox(height: AppSpacing.md),
-                        _ErrorText(message: state.errorMessage!),
+                        _DetailsSection(details: view.details),
+                        const SizedBox(height: AppSpacing.md),
+                        _MeasurementsSection(measurements: view.measurements),
+                        const SizedBox(height: AppSpacing.md),
+                        _ChargesSection(product: view.product),
+                        const SizedBox(height: AppSpacing.md),
+                        const _PaymentNote(),
+                        if (state.errorMessage != null) ...<Widget>[
+                          const SizedBox(height: AppSpacing.md),
+                          _ErrorText(message: state.errorMessage!),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                _BottomBar(
-                  loading: state.step == OrderStep.placing,
-                  onPlaceOrder: () =>
-                      context.read<PlaceOrderBloc>().add(const OrderPlaced()),
-                ),
-              ],
-            );
-          },
+                  _BottomBar(
+                    loading: state.step == OrderStep.placing,
+                    onPlaceOrder: () =>
+                        context.read<PlaceOrderBloc>().add(const OrderPlaced()),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

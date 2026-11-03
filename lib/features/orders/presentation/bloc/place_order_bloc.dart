@@ -13,8 +13,8 @@ import 'place_order_state.dart';
 /// [OrderDraft] (product + details + measurements) is preserved across steps.
 class PlaceOrderBloc extends Bloc<PlaceOrderEvent, PlaceOrderState> {
   PlaceOrderBloc({required OrderRepository orderRepository})
-      : _orderRepository = orderRepository,
-        super(const PlaceOrderState()) {
+    : _orderRepository = orderRepository,
+      super(const PlaceOrderState()) {
     on<OrderStarted>(_onOrderStarted);
     on<CustomerDetailsSubmitted>(_onCustomerDetailsSubmitted);
     on<MeasurementsSubmitted>(_onMeasurementsSubmitted);

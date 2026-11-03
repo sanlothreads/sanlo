@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sanlo/core/entities/gender.dart';
 import 'package:sanlo/core/theme/app_colors.dart';
 import 'package:sanlo/core/theme/app_spacing.dart';
+import 'package:sanlo/core/widgets/responsive_center.dart';
 import 'package:sanlo/core/widgets/section_card.dart';
 import 'package:sanlo/features/auth/domain/entities/auth_user.dart';
 import 'package:sanlo/features/auth/presentation/bloc/auth_bloc.dart';
@@ -43,66 +44,68 @@ class _ProfileView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
-        child: BlocBuilder<ProfileCubit, ProfileState>(
-          builder: (context, state) {
-            final AuthState auth = context.watch<AuthBloc>().state;
-            final bool signedIn = auth.isAuthenticated;
+        child: ResponsiveCenter(
+          child: BlocBuilder<ProfileCubit, ProfileState>(
+            builder: (context, state) {
+              final AuthState auth = context.watch<AuthBloc>().state;
+              final bool signedIn = auth.isAuthenticated;
 
-            // A guest sees the dedicated "browsing as a Guest" screen rather
-            // than the signed-in profile details.
-            if (!signedIn) {
-              return const _GuestProfileView();
-            }
+              // A guest sees the dedicated "browsing as a Guest" screen rather
+              // than the signed-in profile details.
+              if (!signedIn) {
+                return const _GuestProfileView();
+              }
 
-            if (state.loading && state.profile == null) {
-              return const Center(child: CircularProgressIndicator());
-            }
+              if (state.loading && state.profile == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            if (state.error != null && state.profile == null) {
-              return _ErrorBody(message: state.error!);
-            }
+              if (state.error != null && state.profile == null) {
+                return _ErrorBody(message: state.error!);
+              }
 
-            final UserProfile? baseProfile = state.profile;
-            if (baseProfile == null) {
-              return const _ErrorBody(message: 'Profile unavailable');
-            }
+              final UserProfile? baseProfile = state.profile;
+              if (baseProfile == null) {
+                return const _ErrorBody(message: 'Profile unavailable');
+              }
 
-            // When a real user is signed in, show *their* details rather than
-            // the seeded mock profile. Stats stay from the profile repository.
-            final UserProfile profile = signedIn
-                ? _mergeAuth(baseProfile, auth.user!)
-                : baseProfile;
+              // When a real user is signed in, show *their* details rather than
+              // the seeded mock profile. Stats stay from the profile repository.
+              final UserProfile profile = signedIn
+                  ? _mergeAuth(baseProfile, auth.user!)
+                  : baseProfile;
 
-            // Editing is only meaningful for a signed-in user (their record is
-            // what gets persisted). Guests fall back to the read-only view.
-            final bool editing = signedIn && state.editing;
+              // Editing is only meaningful for a signed-in user (their record is
+              // what gets persisted). Guests fall back to the read-only view.
+              final bool editing = signedIn && state.editing;
 
-            return ListView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.md,
-              ),
-              children: <Widget>[
-                _TitleRow(editing: editing, signedIn: signedIn),
-                const SizedBox(height: AppSpacing.lg),
-                _ProfileHeader(profile: profile),
-                const SizedBox(height: AppSpacing.lg),
-                _StatsRow(profile: profile),
-                const SizedBox(height: AppSpacing.lg),
-                if (editing)
-                  _EditForm(user: auth.user!)
-                else
-                  _PersonalDetails(
-                    profile: profile,
-                    address: signedIn ? auth.user!.address : null,
-                  ),
-                if (signedIn && !editing) ...<Widget>[
+              return ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.md,
+                ),
+                children: <Widget>[
+                  _TitleRow(editing: editing, signedIn: signedIn),
                   const SizedBox(height: AppSpacing.lg),
-                  const _LogoutButton(),
+                  _ProfileHeader(profile: profile),
+                  const SizedBox(height: AppSpacing.lg),
+                  _StatsRow(profile: profile),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (editing)
+                    _EditForm(user: auth.user!)
+                  else
+                    _PersonalDetails(
+                      profile: profile,
+                      address: signedIn ? auth.user!.address : null,
+                    ),
+                  if (signedIn && !editing) ...<Widget>[
+                    const SizedBox(height: AppSpacing.lg),
+                    const _LogoutButton(),
+                  ],
                 ],
-              ],
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

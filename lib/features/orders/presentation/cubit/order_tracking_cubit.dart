@@ -8,7 +8,7 @@ import 'order_tracking_state.dart';
 /// timeline for a given order id.
 class OrderTrackingCubit extends Cubit<OrderTrackingState> {
   OrderTrackingCubit(this._repository)
-      : super(const OrderTrackingState.initial());
+    : super(const OrderTrackingState.initial());
 
   final OrderRepository _repository;
 
@@ -22,11 +22,7 @@ class OrderTrackingCubit extends Cubit<OrderTrackingState> {
     try {
       final order = await _repository.getOrderById(orderId);
       final timeline = await _repository.getTimeline(orderId);
-      emit(state.copyWith(
-        loading: false,
-        order: order,
-        timeline: timeline,
-      ));
+      emit(state.copyWith(loading: false, order: order, timeline: timeline));
     } on NotFoundFailure {
       emit(state.copyWith(loading: false, error: 'Not found'));
     }
