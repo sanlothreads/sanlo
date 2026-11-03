@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/validators.dart';
+import '../../domain/entities/auth_user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -18,8 +19,8 @@ export 'auth_state.dart';
 /// Validates Requirements 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.9, 1.11.
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({required AuthRepository authRepository})
-      : _authRepository = authRepository,
-        super(const AuthState.idle()) {
+    : _authRepository = authRepository,
+      super(const AuthState.idle()) {
     on<OtpRequested>(_onOtpRequested);
     on<OtpVerified>(_onOtpVerified);
     on<GuestRequested>(_onGuestRequested);
@@ -36,26 +37,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     if (!Validators.isValidIndianMobile(event.mobile)) {
-      emit(state.copyWith(
-        phase: AuthPhase.error,
-        errorMessage: 'Enter a valid 10-digit mobile',
-      ));
+      emit(
+        state.copyWith(
+          phase: AuthPhase.error,
+          errorMessage: 'Enter a valid 10-digit mobile',
+        ),
+      );
       return;
     }
 
     emit(state.copyWith(phase: AuthPhase.sendingOtp, clearError: true));
     try {
       final session = await _authRepository.sendOtp(mobile: event.mobile);
-      emit(state.copyWith(
-        phase: AuthPhase.otpSent,
-        session: session,
-        clearError: true,
-      ));
+      emit(
+        state.copyWith(
+          phase: AuthPhase.otpSent,
+          session: session,
+          clearError: true,
+        ),
+      );
     } on Failure catch (failure) {
-      emit(state.copyWith(
-        phase: AuthPhase.error,
-        errorMessage: failure.message ?? 'Could not send the OTP.',
-      ));
+      emit(
+        state.copyWith(
+          phase: AuthPhase.error,
+          errorMessage: failure.message ?? 'Could not send the OTP.',
+        ),
+      );
     }
   }
 
@@ -74,21 +81,45 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         sessionId: session.sessionId,
         code: event.code,
       );
-      emit(state.copyWith(
-        phase: AuthPhase.authenticated,
-        user: user,
-        clearError: true,
-      ));
+
+      // After a successful OTP sign-in, decide where the user goes: an existing
+      // profile in the backing store means they are registered (-> Home), a
+      // missing one means they must complete the Sign up form first.
+      final String? uid = user.id;
+      final bool registered =
+          uid != null && await _authRepository.isRegistered(uid);
+
+      if (registered) {
+        // Load the stored profile so Home/Profile have the full details.
+        // `uid` is non-null here (registered implies it), so the lookup is safe.
+        final AuthUser profile = await _authRepository.loadProfile(uid) ?? user;
+        emit(
+          state.copyWith(
+            phase: AuthPhase.authenticated,
+            user: profile,
+            clearError: true,
+          ),
+        );
+      } else {
+        emit(
+          state.copyWith(
+            phase: AuthPhase.needsRegistration,
+            user: user,
+            clearError: true,
+          ),
+        );
+      }
     } on InvalidOtpFailure {
-      emit(state.copyWith(
-        phase: AuthPhase.error,
-        errorMessage: 'Incorrect code',
-      ));
+      emit(
+        state.copyWith(phase: AuthPhase.error, errorMessage: 'Incorrect code'),
+      );
     } on Failure catch (failure) {
-      emit(state.copyWith(
-        phase: AuthPhase.error,
-        errorMessage: failure.message ?? 'Could not verify the code.',
-      ));
+      emit(
+        state.copyWith(
+          phase: AuthPhase.error,
+          errorMessage: failure.message ?? 'Could not verify the code.',
+        ),
+      );
     }
   }
 
@@ -98,25 +129,40 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     final user = await _authRepository.continueAsGuest();
-    emit(state.copyWith(
-      phase: AuthPhase.authenticated,
-      user: user,
-      clearError: true,
-    ));
+    emit(
+      state.copyWith(
+        phase: AuthPhase.authenticated,
+        user: user,
+        clearError: true,
+      ),
+    );
   }
 
-  /// Creates an account from the submitted sign-up draft.
+  /// Creates an account from the submitted sign-up draft and persists it to the
+  /// backing store. On success the user is authenticated (-> Home); a failure
+  /// surfaces an inline error and keeps the form usable.
   Future<void> _onAccountSubmitted(
     AccountSubmitted event,
     Emitter<AuthState> emit,
   ) async {
     emit(state.copyWith(phase: AuthPhase.creating, clearError: true));
-    final user = await _authRepository.createAccount(event.draft);
-    emit(state.copyWith(
-      phase: AuthPhase.authenticated,
-      user: user,
-      clearError: true,
-    ));
+    try {
+      final user = await _authRepository.createAccount(event.draft);
+      emit(
+        state.copyWith(
+          phase: AuthPhase.authenticated,
+          user: user,
+          clearError: true,
+        ),
+      );
+    } on Failure catch (failure) {
+      emit(
+        state.copyWith(
+          phase: AuthPhase.error,
+          errorMessage: failure.message ?? 'Could not create your account.',
+        ),
+      );
+    }
   }
 
   /// Resets the flow back to its initial idle state.

@@ -23,6 +23,11 @@ enum AuthPhase {
   /// A user is signed in (including guests); [AuthState.user] is populated.
   authenticated,
 
+  /// OTP was verified for a number that has no profile yet: the user is
+  /// signed in but must complete the Sign up form. [AuthState.user] carries
+  /// the signed-in identity (uid + mobile) to seed that form.
+  needsRegistration,
+
   /// An account-creation request is in flight.
   creating,
 
@@ -45,10 +50,10 @@ class AuthState extends Equatable {
 
   /// The initial, idle state with no session, user, or error.
   const AuthState.idle()
-      : phase = AuthPhase.idle,
-        session = null,
-        user = null,
-        errorMessage = null;
+    : phase = AuthPhase.idle,
+      session = null,
+      user = null,
+      errorMessage = null;
 
   /// Current lifecycle phase.
   final AuthPhase phase;
@@ -81,8 +86,7 @@ class AuthState extends Equatable {
       phase: phase ?? this.phase,
       session: clearSession ? null : (session ?? this.session),
       user: clearUser ? null : (user ?? this.user),
-      errorMessage:
-          clearError ? null : (errorMessage ?? this.errorMessage),
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 

@@ -55,12 +55,27 @@ class MockAuthRepository implements AuthRepository {
     return user;
   }
 
+  /// In-memory store of registered profiles, keyed by user id. Populated by
+  /// [createAccount] so [isRegistered] / [loadProfile] mirror the Firebase
+  /// behaviour without a backing database.
+  final Map<String, AuthUser> _profiles = {};
+
+  @override
+  Future<bool> isRegistered(String uid) async => _profiles.containsKey(uid);
+
+  @override
+  Future<AuthUser?> loadProfile(String uid) async => _profiles[uid];
+
   @override
   Future<AuthUser> createAccount(AuthUser draftUser) async {
-    final user = draftUser.copyWith(
-      id: 'mock-user-${DateTime.now().microsecondsSinceEpoch}',
-      isGuest: false,
-    );
+    // Prefer the signed-in user's id so a profile created right after OTP
+    // verification is keyed the same way [isRegistered] later looks it up.
+    final String id =
+        _currentUser?.id ??
+        draftUser.id ??
+        'mock-user-${DateTime.now().microsecondsSinceEpoch}';
+    final user = draftUser.copyWith(id: id, isGuest: false);
+    _profiles[id] = user;
     _currentUser = user;
     return user;
   }
