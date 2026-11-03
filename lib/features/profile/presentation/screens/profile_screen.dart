@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:sanlo/core/entities/gender.dart';
 import 'package:sanlo/core/theme/app_colors.dart';
 import 'package:sanlo/core/theme/app_spacing.dart';
@@ -46,6 +45,15 @@ class _ProfileView extends StatelessWidget {
       body: SafeArea(
         child: BlocBuilder<ProfileCubit, ProfileState>(
           builder: (context, state) {
+            final AuthState auth = context.watch<AuthBloc>().state;
+            final bool signedIn = auth.isAuthenticated;
+
+            // A guest sees the dedicated "browsing as a Guest" screen rather
+            // than the signed-in profile details.
+            if (!signedIn) {
+              return const _GuestProfileView();
+            }
+
             if (state.loading && state.profile == null) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -59,8 +67,6 @@ class _ProfileView extends StatelessWidget {
               return const _ErrorBody(message: 'Profile unavailable');
             }
 
-            final AuthState auth = context.watch<AuthBloc>().state;
-            final bool signedIn = auth.isAuthenticated;
             // When a real user is signed in, show *their* details rather than
             // the seeded mock profile. Stats stay from the profile repository.
             final UserProfile profile = signedIn
@@ -114,6 +120,277 @@ class _ProfileView extends StatelessWidget {
       mobile: (user.mobile ?? '').trim().isNotEmpty ? user.mobile : base.mobile,
       email: user.email ?? base.email,
       gender: user.gender ?? base.gender,
+    );
+  }
+}
+
+/// The Profile tab shown to a guest: a hero image, a "browsing as a Guest"
+/// headline, Sign in / Continue-as-guest actions, a "Why create an account?"
+/// card, and a "Track your order" lookup card.
+class _GuestProfileView extends StatelessWidget {
+  const _GuestProfileView();
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Text(
+              'Profile',
+              style: textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Center(
+          child: Image.asset(
+            'assets/image/sanlo_guest.png',
+            height: 160,
+            fit: BoxFit.contain,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          "You're browsing as a Guest",
+          textAlign: TextAlign.center,
+          style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'Sign in to place orders, save measurements, track orders and more.',
+          textAlign: TextAlign.center,
+          style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () => context.pushNamed('signIn'),
+            icon: const Icon(Icons.person_outline),
+            label: const Text('Sign in / Create account'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.smd),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: () => context.goNamed('home'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            ),
+            child: const Text('Continue as Guest'),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        const _WhyCreateAccountCard(),
+        const SizedBox(height: AppSpacing.md),
+        const _TrackOrderCard(),
+        const SizedBox(height: AppSpacing.lg),
+      ],
+    );
+  }
+}
+
+/// The "Why create an account?" benefits card shown to guests.
+class _WhyCreateAccountCard extends StatelessWidget {
+  const _WhyCreateAccountCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      title: 'Why create an account?',
+      child: Column(
+        children: const <Widget>[
+          _BenefitRow(
+            icon: Icons.shopping_bag_outlined,
+            label: 'Faster checkout',
+          ),
+          _RowDivider(),
+          _BenefitRow(
+            icon: Icons.straighten_rounded,
+            label: 'Save your measurements',
+          ),
+          _RowDivider(),
+          _BenefitRow(
+            icon: Icons.inventory_2_outlined,
+            label: 'Track your orders',
+          ),
+          _RowDivider(),
+          _BenefitRow(
+            icon: Icons.favorite_border_rounded,
+            label: 'Save your favorite designs',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A single icon + label benefit row.
+class _BenefitRow extends StatelessWidget {
+  const _BenefitRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: AppRadius.smAll,
+            ),
+            child: Icon(icon, size: 20, color: AppColors.primary),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              label,
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A "Track your order" card letting a guest look up an order by id and jump to
+/// its tracking screen.
+class _TrackOrderCard extends StatefulWidget {
+  const _TrackOrderCard();
+
+  @override
+  State<_TrackOrderCard> createState() => _TrackOrderCardState();
+}
+
+class _TrackOrderCardState extends State<_TrackOrderCard> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _track() {
+    final String raw = _controller.text.trim();
+    if (raw.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    // Normalize "#SN-1041" / "SN-1041" / "1041" to the stored id form.
+    String id = raw.replaceAll('#', '').trim();
+    if (!id.toUpperCase().startsWith('SN-') && RegExp(r'^\d+$').hasMatch(id)) {
+      id = 'SN-$id';
+    }
+    context.pushNamed(
+      'orderTracking',
+      pathParameters: <String, String>{'id': id},
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: AppRadius.smAll,
+                ),
+                child: const Icon(
+                  Icons.local_shipping_outlined,
+                  size: 22,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Track your order',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Already placed an order? Track it here.',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  textInputAction: TextInputAction.go,
+                  onSubmitted: (_) => _track(),
+                  decoration: const InputDecoration(
+                    hintText: 'Order ID : SN-1041',
+                    prefixIcon: Icon(Icons.inventory_2_outlined),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              SizedBox(
+                height: 48,
+                width: 48,
+                child: FilledButton(
+                  onPressed: _track,
+                  style: FilledButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppRadius.mdAll,
+                    ),
+                  ),
+                  child: const Icon(Icons.arrow_forward_rounded),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
