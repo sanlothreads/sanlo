@@ -23,11 +23,7 @@ class OtpSessionModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'sessionId': sessionId,
-      'mobile': mobile,
-      'expiresAt': expiresAt,
-    };
+    return {'sessionId': sessionId, 'mobile': mobile, 'expiresAt': expiresAt};
   }
 
   factory OtpSessionModel.fromEntity(OtpSession entity) {

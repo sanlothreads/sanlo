@@ -5,6 +5,7 @@ import 'package:sanlo/core/theme/app_colors.dart';
 import 'package:sanlo/core/theme/app_spacing.dart';
 import 'package:sanlo/core/widgets/filter_chips.dart';
 import 'package:sanlo/core/widgets/product_card.dart';
+import 'package:sanlo/core/widgets/responsive_center.dart';
 import 'package:sanlo/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sanlo/features/catalog/domain/entities/product.dart';
 import 'package:sanlo/features/catalog/domain/repositories/product_repository.dart';
@@ -44,25 +45,37 @@ class _HomeView extends StatelessWidget {
       appBar: AppBar(toolbarHeight: 0),
       body: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) {
-          return CustomScrollView(
-            slivers: <Widget>[
-              const SliverToBoxAdapter(child: _Header()),
-              const SliverToBoxAdapter(child: _SearchField()),
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
-              SliverToBoxAdapter(
-                child: CategoryFilterChips(
-                  categories: state.categories,
-                  selected: state.selectedFilter,
-                  onSelected: (kind) =>
-                      context.read<HomeCubit>().applyFilter(kind),
+          // Cap the content width and center it so the page reads well on wide
+          // web windows instead of stretching edge-to-edge.
+          return ResponsiveCenter(
+            child: CustomScrollView(
+              slivers: <Widget>[
+                const SliverToBoxAdapter(child: _Header()),
+                const SliverToBoxAdapter(child: _SearchField()),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: AppSpacing.md),
                 ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
-              const SliverToBoxAdapter(child: _PromoBanner()),
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
-              _PopularSection(state: state),
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
-            ],
+                SliverToBoxAdapter(
+                  child: CategoryFilterChips(
+                    categories: state.categories,
+                    selected: state.selectedFilter,
+                    onSelected: (kind) =>
+                        context.read<HomeCubit>().applyFilter(kind),
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: AppSpacing.md),
+                ),
+                const SliverToBoxAdapter(child: _PromoBanner()),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: AppSpacing.lg),
+                ),
+                _PopularSection(state: state),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: AppSpacing.lg),
+                ),
+              ],
+            ),
           );
         },
       ),
@@ -290,12 +303,17 @@ class _PopularSection extends StatelessWidget {
         const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
         SliverPadding(
           padding: AppSpacing.pagePadding,
+          // A max-extent delegate keeps each tile a sensible, fixed size: on a
+          // narrow phone it falls back to 2 columns, and on a wide web window
+          // it adds more columns instead of stretching the cards. A fixed
+          // mainAxisExtent pins the card height regardless of column width, so
+          // the pastel image area no longer grows abnormally tall on web.
           sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 220,
               mainAxisSpacing: AppSpacing.md,
               crossAxisSpacing: AppSpacing.md,
-              childAspectRatio: 0.58,
+              mainAxisExtent: 300,
             ),
             delegate: SliverChildBuilderDelegate((context, index) {
               final Product product = products[index];

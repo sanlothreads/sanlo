@@ -8,7 +8,7 @@ import 'product_details_state.dart';
 /// the selected photo and variant.
 class ProductDetailsCubit extends Cubit<ProductDetailsState> {
   ProductDetailsCubit(this._repository)
-      : super(const ProductDetailsState.initial());
+    : super(const ProductDetailsState.initial());
 
   final ProductRepository _repository;
 
@@ -44,8 +44,8 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
     final clamped = index < 0
         ? 0
         : index > maxIndex
-            ? maxIndex
-            : index;
+        ? maxIndex
+        : index;
     emit(state.copyWith(selectedPhotoIndex: clamped));
   }
 

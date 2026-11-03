@@ -28,6 +28,11 @@ abstract final class AppSpacing {
   /// 48.0 — extra-large spacing for hero/empty states.
   static const double xxl = 48;
 
+  /// Maximum content width for a screen's body. On wide (web/desktop) windows
+  /// the content is capped at this width and centered instead of stretching
+  /// edge-to-edge; on phones it has no effect. See [ResponsiveCenter].
+  static const double maxContentWidth = 720;
+
   /// Common horizontal page padding applied to screens.
   static const EdgeInsets pagePadding = EdgeInsets.symmetric(horizontal: md);
 

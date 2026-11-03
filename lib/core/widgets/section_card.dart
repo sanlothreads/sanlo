@@ -57,12 +57,7 @@ class SectionCard extends StatelessWidget {
           if (title != null) ...<Widget>[
             Row(
               children: <Widget>[
-                Expanded(
-                  child: Text(
-                    title,
-                    style: textTheme.titleMedium,
-                  ),
-                ),
+                Expanded(child: Text(title, style: textTheme.titleMedium)),
                 if (trailing != null) trailing!,
               ],
             ),

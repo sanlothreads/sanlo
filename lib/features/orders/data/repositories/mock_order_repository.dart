@@ -14,8 +14,8 @@ import '../../domain/repositories/order_repository.dart';
 /// orders with generated `SN-####` ids.
 class MockOrderRepository implements OrderRepository {
   MockOrderRepository()
-      : _active = List<Order>.from(_seedActiveOrders()),
-        _completed = List<Order>.from(_seedCompletedOrders());
+    : _active = List<Order>.from(_seedActiveOrders()),
+      _completed = List<Order>.from(_seedCompletedOrders());
 
   final List<Order> _active;
   final List<Order> _completed;
@@ -188,7 +188,9 @@ class MockOrderRepository implements OrderRepository {
   // --- OrderRepository ----------------------------------------------------
 
   @override
-  Future<List<Order>> getOrders({OrderBucket bucket = OrderBucket.active}) async {
+  Future<List<Order>> getOrders({
+    OrderBucket bucket = OrderBucket.active,
+  }) async {
     return switch (bucket) {
       OrderBucket.active => List<Order>.unmodifiable(_active),
       OrderBucket.completed => List<Order>.unmodifiable(_completed),

@@ -52,10 +52,10 @@ class ProductDetailsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        loading,
-        detail,
-        selectedPhotoIndex,
-        selectedVariantIndex,
-        error,
-      ];
+    loading,
+    detail,
+    selectedPhotoIndex,
+    selectedVariantIndex,
+    error,
+  ];
 }

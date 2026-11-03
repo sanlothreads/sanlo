@@ -102,9 +102,7 @@ class MockProductRepository implements ProductRepository {
     if (kind == CategoryKind.all) {
       return products.toList(growable: false);
     }
-    return products
-        .where((p) => p.category == kind)
-        .toList(growable: false);
+    return products.where((p) => p.category == kind).toList(growable: false);
   }
 
   @override
@@ -132,12 +130,7 @@ class MockProductRepository implements ProductRepository {
         'One free alteration after trial',
         "Measurement at shop if you're not sure",
       ],
-      variantLabels: const [
-        'Color 1',
-        'Color 2',
-        'Color 3',
-        'Color 4',
-      ],
+      variantLabels: const ['Color 1', 'Color 2', 'Color 3', 'Color 4'],
       stitchingChargeInr: product.priceInr,
       paymentLabel: 'At shop',
     );
@@ -145,9 +138,7 @@ class MockProductRepository implements ProductRepository {
 
   /// Maps a stored category name to the label shown on the details screen.
   String _categoryLabel(String categoryName) {
-    final match = _categories
-        .where((c) => c.kind == categoryName)
-        .firstOrNull;
+    final match = _categories.where((c) => c.kind == categoryName).firstOrNull;
     if (match != null) {
       return match.label;
     }

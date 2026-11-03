@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:sanlo/core/theme/app_colors.dart';
 import 'package:sanlo/core/theme/app_spacing.dart';
 import 'package:sanlo/core/widgets/image_placeholder.dart';
+import 'package:sanlo/core/widgets/responsive_center.dart';
 import 'package:sanlo/core/widgets/section_card.dart';
 import 'package:sanlo/core/widgets/status_badge.dart';
 import 'package:sanlo/features/auth/presentation/bloc/auth_bloc.dart';
@@ -51,41 +52,43 @@ class _MyOrdersView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
-        child: BlocBuilder<OrdersCubit, OrdersState>(
-          builder: (context, state) {
-            // A guest sees only the info banner; a signed-in user sees their
-            // order list (and not the guest banner).
-            final bool signedIn = context
-                .watch<AuthBloc>()
-                .state
-                .isAuthenticated;
+        child: ResponsiveCenter(
+          child: BlocBuilder<OrdersCubit, OrdersState>(
+            builder: (context, state) {
+              // A guest sees only the info banner; a signed-in user sees their
+              // order list (and not the guest banner).
+              final bool signedIn = context
+                  .watch<AuthBloc>()
+                  .state
+                  .isAuthenticated;
 
-            return ListView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.md,
-              ),
-              children: <Widget>[
-                Text(
-                  'My orders',
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              return ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.md,
                 ),
-                const SizedBox(height: AppSpacing.md),
-                if (signedIn) ...<Widget>[
-                  _BucketToggle(
-                    bucket: state.bucket,
-                    onSelected: (bucket) =>
-                        context.read<OrdersCubit>().selectBucket(bucket),
+                children: <Widget>[
+                  Text(
+                    'My orders',
+                    style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  ..._buildBody(context, state, textTheme),
-                ] else
-                  const _GuestBanner(),
-              ],
-            );
-          },
+                  if (signedIn) ...<Widget>[
+                    _BucketToggle(
+                      bucket: state.bucket,
+                      onSelected: (bucket) =>
+                          context.read<OrdersCubit>().selectBucket(bucket),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    ..._buildBody(context, state, textTheme),
+                  ] else
+                    const _GuestBanner(),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

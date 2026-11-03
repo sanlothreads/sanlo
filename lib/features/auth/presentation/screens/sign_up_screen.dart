@@ -6,6 +6,7 @@ import '../../../../core/entities/gender.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/responsive_center.dart';
 import '../../domain/entities/auth_user.dart';
 import '../bloc/auth_bloc.dart';
 
@@ -120,169 +121,171 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.xl,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Create your account',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+          child: ResponsiveCenter(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.xl,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Create your account',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'Save your details and measurements for faster orders.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Save your details and measurements for faster orders.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.xl),
 
-                // First + last name row.
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(
-                      child: _LabeledField(
-                        label: 'First name',
-                        hint: 'Priya',
-                        controller: _firstNameController,
-                        textInputAction: TextInputAction.next,
-                        textCapitalization: TextCapitalization.words,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: _LabeledField(
-                        label: 'Last name',
-                        hint: 'Sharma',
-                        controller: _lastNameController,
-                        textInputAction: TextInputAction.next,
-                        textCapitalization: TextCapitalization.words,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-
-                _LabeledField(
-                  label: 'Mobile number',
-                  hint: '+91 98765 43210',
-                  controller: _mobileController,
-                  keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.next,
-                  enabled: !_mobileLocked,
-                ),
-                const SizedBox(height: AppSpacing.md),
-
-                _LabeledField(
-                  label: 'Email',
-                  hint: 'priya@example.com',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.done,
-                ),
-                const SizedBox(height: AppSpacing.md),
-
-                // Gender segmented pills.
-                Text(
-                  'Gender',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  children: <Widget>[
-                    _GenderPill(
-                      label: 'Male',
-                      selected: _selectedGender == Gender.male,
-                      onTap: () =>
-                          setState(() => _selectedGender = Gender.male),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _GenderPill(
-                      label: 'Female',
-                      selected: _selectedGender == Gender.female,
-                      onTap: () =>
-                          setState(() => _selectedGender = Gender.female),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _GenderPill(
-                      label: 'Other',
-                      selected: _selectedGender == Gender.other,
-                      onTap: () =>
-                          setState(() => _selectedGender = Gender.other),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xl),
-
-                BlocBuilder<AuthBloc, AuthState>(
-                  buildWhen: (AuthState previous, AuthState current) =>
-                      previous.phase != current.phase ||
-                      previous.errorMessage != current.errorMessage,
-                  builder: (BuildContext context, AuthState state) {
-                    final bool loading = state.phase == AuthPhase.creating;
-                    final bool hasError =
-                        state.phase == AuthPhase.error &&
-                        state.errorMessage != null;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        if (hasError) ...<Widget>[
-                          Text(
-                            state.errorMessage!,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.error,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                        ],
-                        PrimaryButton(
-                          label: 'Create account',
-                          loading: loading,
-                          onPressed: _onCreateAccount,
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: AppSpacing.lg),
-
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  // First + last name row.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        'Already have an account? ',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                      Expanded(
+                        child: _LabeledField(
+                          label: 'First name',
+                          hint: 'Priya',
+                          controller: _firstNameController,
+                          textInputAction: TextInputAction.next,
+                          textCapitalization: TextCapitalization.words,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: _onSignIn,
-                        child: Text(
-                          'Sign in',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: _LabeledField(
+                          label: 'Last name',
+                          hint: 'Sharma',
+                          controller: _lastNameController,
+                          textInputAction: TextInputAction.next,
+                          textCapitalization: TextCapitalization.words,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.md),
+
+                  _LabeledField(
+                    label: 'Mobile number',
+                    hint: '+91 98765 43210',
+                    controller: _mobileController,
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.next,
+                    enabled: !_mobileLocked,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+
+                  _LabeledField(
+                    label: 'Email',
+                    hint: 'priya@example.com',
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.done,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+
+                  // Gender segmented pills.
+                  Text(
+                    'Gender',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: <Widget>[
+                      _GenderPill(
+                        label: 'Male',
+                        selected: _selectedGender == Gender.male,
+                        onTap: () =>
+                            setState(() => _selectedGender = Gender.male),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _GenderPill(
+                        label: 'Female',
+                        selected: _selectedGender == Gender.female,
+                        onTap: () =>
+                            setState(() => _selectedGender = Gender.female),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _GenderPill(
+                        label: 'Other',
+                        selected: _selectedGender == Gender.other,
+                        onTap: () =>
+                            setState(() => _selectedGender = Gender.other),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+
+                  BlocBuilder<AuthBloc, AuthState>(
+                    buildWhen: (AuthState previous, AuthState current) =>
+                        previous.phase != current.phase ||
+                        previous.errorMessage != current.errorMessage,
+                    builder: (BuildContext context, AuthState state) {
+                      final bool loading = state.phase == AuthPhase.creating;
+                      final bool hasError =
+                          state.phase == AuthPhase.error &&
+                          state.errorMessage != null;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          if (hasError) ...<Widget>[
+                            Text(
+                              state.errorMessage!,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.error,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                          ],
+                          PrimaryButton(
+                            label: 'Create account',
+                            loading: loading,
+                            onPressed: _onCreateAccount,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+
+                  Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          'Already have an account? ',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: _onSignIn,
+                          child: Text(
+                            'Sign in',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

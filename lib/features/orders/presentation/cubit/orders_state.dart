@@ -35,8 +35,7 @@ class OrdersState extends Equatable {
   final String? error;
 
   /// The list of orders to display for the selected [bucket].
-  List<Order> get visible =>
-      bucket == OrderBucket.active ? active : completed;
+  List<Order> get visible => bucket == OrderBucket.active ? active : completed;
 
   /// Returns a copy of this state with the given fields replaced.
   OrdersState copyWith({

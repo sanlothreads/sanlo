@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/image_placeholder.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/responsive_center.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/step_indicator.dart';
 import '../../../catalog/domain/entities/product.dart';
@@ -49,11 +50,13 @@ class _OrderDetailsStepScreenState extends State<OrderDetailsStepScreen> {
     super.initState();
     // Prefill from the existing draft details (edit case); otherwise start the
     // mobile field with the "+91 " prefix per the mockup.
-    final CustomerDetails? details =
-        context.read<PlaceOrderBloc>().state.draft?.details;
+    final CustomerDetails? details = context
+        .read<PlaceOrderBloc>()
+        .state
+        .draft
+        ?.details;
     _fullNameController = TextEditingController(text: details?.fullName ?? '');
-    _mobileController =
-        TextEditingController(text: details?.mobile ?? '+91 ');
+    _mobileController = TextEditingController(text: details?.mobile ?? '+91 ');
     _emailController = TextEditingController(text: details?.email ?? '');
     _addressController = TextEditingController(text: details?.address ?? '');
   }
@@ -75,15 +78,15 @@ class _OrderDetailsStepScreenState extends State<OrderDetailsStepScreen> {
     final String address = _addressController.text.trim();
 
     context.read<PlaceOrderBloc>().add(
-          CustomerDetailsSubmitted(
-            details: CustomerDetails(
-              fullName: _fullNameController.text.trim(),
-              mobile: _mobileController.text.trim(),
-              email: email.isEmpty ? null : email,
-              address: address.isEmpty ? null : address,
-            ),
-          ),
-        );
+      CustomerDetailsSubmitted(
+        details: CustomerDetails(
+          fullName: _fullNameController.text.trim(),
+          mobile: _mobileController.text.trim(),
+          email: email.isEmpty ? null : email,
+          address: address.isEmpty ? null : address,
+        ),
+      ),
+    );
 
     context.pushNamed('orderMeasurements');
   }
@@ -97,104 +100,108 @@ class _OrderDetailsStepScreenState extends State<OrderDetailsStepScreen> {
         title: const Text('Place order'),
       ),
       body: SafeArea(
-        child: BlocBuilder<PlaceOrderBloc, PlaceOrderState>(
-          builder: (BuildContext context, PlaceOrderState state) {
-            final Product? product =
-                state.draft?.product ?? widget.entryProduct;
+        child: ResponsiveCenter(
+          child: BlocBuilder<PlaceOrderBloc, PlaceOrderState>(
+            builder: (BuildContext context, PlaceOrderState state) {
+              final Product? product =
+                  state.draft?.product ?? widget.entryProduct;
 
-            if (product == null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (context.mounted &&
-                    context.read<PlaceOrderBloc>().state.draft?.product == null &&
-                    widget.entryProduct == null) {
-                  context.goNamed('home');
-                }
-              });
-              return const Center(child: CircularProgressIndicator());
-            }
+              if (product == null) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (context.mounted &&
+                      context.read<PlaceOrderBloc>().state.draft?.product ==
+                          null &&
+                      widget.entryProduct == null) {
+                    context.goNamed('home');
+                  }
+                });
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            return Column(
-              children: <Widget>[
-                Expanded(
-                  child: Form(
-                    key: _formKey,
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        AppSpacing.md,
-                        AppSpacing.md,
-                        AppSpacing.lg,
+              return Column(
+                children: <Widget>[
+                  Expanded(
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          AppSpacing.md,
+                          AppSpacing.md,
+                          AppSpacing.lg,
+                        ),
+                        children: <Widget>[
+                          const StepIndicator(
+                            currentStep: 1,
+                            totalSteps: 3,
+                            label: 'Your details',
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          _ProductSummary(product: product),
+                          const SizedBox(height: AppSpacing.lg),
+                          _FieldLabel('Full name'),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextFormField(
+                            controller: _fullNameController,
+                            textInputAction: TextInputAction.next,
+                            textCapitalization: TextCapitalization.words,
+                            decoration: const InputDecoration(
+                              hintText: 'Your name',
+                            ),
+                            validator: (String? value) =>
+                                Validators.requiredError(
+                                  value,
+                                  fieldLabel: 'Full name',
+                                ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _FieldLabel('Mobile number'),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextFormField(
+                            controller: _mobileController,
+                            keyboardType: TextInputType.phone,
+                            textInputAction: TextInputAction.next,
+                            decoration: const InputDecoration(
+                              hintText: '+91 98765 43210',
+                            ),
+                            validator: (String? value) =>
+                                Validators.mobileError(value),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _FieldLabel('Email (optional)'),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            decoration: const InputDecoration(
+                              hintText: 'you@example.com',
+                            ),
+                            validator: (String? value) =>
+                                Validators.emailError(value),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _FieldLabel('Address (optional)'),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextFormField(
+                            controller: _addressController,
+                            keyboardType: TextInputType.multiline,
+                            minLines: 3,
+                            maxLines: 5,
+                            textCapitalization: TextCapitalization.sentences,
+                            decoration: const InputDecoration(
+                              hintText: 'House no., street, area, city',
+                            ),
+                          ),
+                        ],
                       ),
-                      children: <Widget>[
-                        const StepIndicator(
-                          currentStep: 1,
-                          totalSteps: 3,
-                          label: 'Your details',
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        _ProductSummary(product: product),
-                        const SizedBox(height: AppSpacing.lg),
-                        _FieldLabel('Full name'),
-                        const SizedBox(height: AppSpacing.sm),
-                        TextFormField(
-                          controller: _fullNameController,
-                          textInputAction: TextInputAction.next,
-                          textCapitalization: TextCapitalization.words,
-                          decoration: const InputDecoration(
-                            hintText: 'Your name',
-                          ),
-                          validator: (String? value) => Validators.requiredError(
-                            value,
-                            fieldLabel: 'Full name',
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _FieldLabel('Mobile number'),
-                        const SizedBox(height: AppSpacing.sm),
-                        TextFormField(
-                          controller: _mobileController,
-                          keyboardType: TextInputType.phone,
-                          textInputAction: TextInputAction.next,
-                          decoration: const InputDecoration(
-                            hintText: '+91 98765 43210',
-                          ),
-                          validator: (String? value) =>
-                              Validators.mobileError(value),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _FieldLabel('Email (optional)'),
-                        const SizedBox(height: AppSpacing.sm),
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          decoration: const InputDecoration(
-                            hintText: 'you@example.com',
-                          ),
-                          validator: (String? value) =>
-                              Validators.emailError(value),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _FieldLabel('Address (optional)'),
-                        const SizedBox(height: AppSpacing.sm),
-                        TextFormField(
-                          controller: _addressController,
-                          keyboardType: TextInputType.multiline,
-                          minLines: 3,
-                          maxLines: 5,
-                          textCapitalization: TextCapitalization.sentences,
-                          decoration: const InputDecoration(
-                            hintText: 'House no., street, area, city',
-                          ),
-                        ),
-                      ],
                     ),
                   ),
-                ),
-                _BottomBar(onContinue: _onContinue),
-              ],
-            );
-          },
+                  _BottomBar(onContinue: _onContinue),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -256,8 +263,9 @@ class _ProductSummary extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   'Ready in ${product.readyInDays} days · Pay at shop',
-                  style: textTheme.bodySmall
-                      ?.copyWith(color: AppColors.textSecondary),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -265,9 +273,7 @@ class _ProductSummary extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Text(
             '₹${product.priceInr}',
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -286,9 +292,7 @@ class _BottomBar extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: AppColors.border),
-        ),
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,

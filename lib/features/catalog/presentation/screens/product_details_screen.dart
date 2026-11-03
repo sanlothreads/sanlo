@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/image_placeholder.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/responsive_center.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/entities/style_detail.dart';
 import '../../domain/repositories/product_repository.dart';
@@ -46,23 +47,25 @@ class _ProductDetailsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
-      body: BlocBuilder<ProductDetailsCubit, ProductDetailsState>(
-        builder: (context, state) {
-          if (state.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: ResponsiveCenter(
+        child: BlocBuilder<ProductDetailsCubit, ProductDetailsState>(
+          builder: (context, state) {
+            if (state.loading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (state.error == 'Not found') {
-            return const _NotFoundView();
-          }
+            if (state.error == 'Not found') {
+              return const _NotFoundView();
+            }
 
-          final detail = state.detail;
-          if (detail == null) {
-            return const _NotFoundView();
-          }
+            final detail = state.detail;
+            if (detail == null) {
+              return const _NotFoundView();
+            }
 
-          return _LoadedView(state: state, detail: detail);
-        },
+            return _LoadedView(state: state, detail: detail);
+          },
+        ),
       ),
     );
   }
@@ -98,8 +101,9 @@ class _NotFoundView extends StatelessWidget {
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     'We could not find that style.',
-                    style: textTheme.bodyMedium
-                        ?.copyWith(color: AppColors.textSecondary),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   TextButton(
@@ -161,9 +165,7 @@ class _LoadedView extends StatelessWidget {
                         const SizedBox(height: AppSpacing.xs),
                         Text(
                           product.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
+                          style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: AppSpacing.sm),
@@ -179,9 +181,7 @@ class _LoadedView extends StatelessWidget {
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           detail.aboutText,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
+                          style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                         if (detail.included.isNotEmpty) ...<Widget>[
@@ -255,11 +255,7 @@ class _CircleBackButton extends StatelessWidget {
         onTap: onPressed,
         child: const Padding(
           padding: EdgeInsets.all(AppSpacing.sm),
-          child: Icon(
-            Icons.arrow_back,
-            color: AppColors.textPrimary,
-            size: 22,
-          ),
+          child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 22),
         ),
       ),
     );
@@ -330,9 +326,9 @@ class _CategoryTypeLine extends StatelessWidget {
     return Text(
       '$categoryLabel · $typeLabel',
       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: AppColors.primary,
-            fontWeight: FontWeight.w600,
-          ),
+        color: AppColors.primary,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 }
@@ -441,8 +437,9 @@ class _InfoChip extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             label,
-            style:
-                textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+            style: textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
@@ -467,10 +464,9 @@ class _SectionHeading extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: Theme.of(context)
-          .textTheme
-          .titleMedium
-          ?.copyWith(fontWeight: FontWeight.bold),
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
     );
   }
 }
@@ -499,9 +495,7 @@ class _IncludedChecklist extends StatelessWidget {
                   color: AppColors.statusReady,
                 ),
                 const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(item, style: textTheme.bodyMedium),
-                ),
+                Expanded(child: Text(item, style: textTheme.bodyMedium)),
               ],
             ),
           ),
@@ -544,13 +538,15 @@ class _BottomOrderBar extends StatelessWidget {
                   children: <Widget>[
                     Text(
                       'Stitching charge',
-                      style: textTheme.bodySmall
-                          ?.copyWith(color: AppColors.textSecondary),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     Text(
                       '₹$stitchingChargeInr',
-                      style: textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -560,7 +556,8 @@ class _BottomOrderBar extends StatelessWidget {
                 width: 160,
                 child: PrimaryButton(
                   label: 'Order now',
-                  onPressed: () => context.pushNamed('orderDetails', extra: product),
+                  onPressed: () =>
+                      context.pushNamed('orderDetails', extra: product),
                 ),
               ),
             ],

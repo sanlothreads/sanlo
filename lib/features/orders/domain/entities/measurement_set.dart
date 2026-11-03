@@ -66,13 +66,13 @@ class MeasurementSet extends Equatable {
 
   @override
   List<Object?> get props => [
-        knowsMeasurements,
-        bust,
-        waist,
-        shoulder,
-        sleeveLength,
-        armhole,
-        blouseLength,
-        designNotes,
-      ];
+    knowsMeasurements,
+    bust,
+    waist,
+    shoulder,
+    sleeveLength,
+    armhole,
+    blouseLength,
+    designNotes,
+  ];
 }

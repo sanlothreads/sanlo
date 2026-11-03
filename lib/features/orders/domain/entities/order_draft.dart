@@ -7,11 +7,7 @@ import 'measurement_set.dart';
 /// Mutable-by-copy aggregate carried across the 3 order steps
 /// (details -> measurements -> review).
 class OrderDraft extends Equatable {
-  const OrderDraft({
-    required this.product,
-    this.details,
-    this.measurements,
-  });
+  const OrderDraft({required this.product, this.details, this.measurements});
 
   /// The product being ordered (set when the flow starts).
   final Product product;

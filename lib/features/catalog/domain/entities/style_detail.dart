@@ -58,12 +58,12 @@ class StyleDetail extends Equatable {
 
   @override
   List<Object?> get props => [
-        product,
-        categoryLabel,
-        aboutText,
-        included,
-        variantLabels,
-        stitchingChargeInr,
-        paymentLabel,
-      ];
+    product,
+    categoryLabel,
+    aboutText,
+    included,
+    variantLabels,
+    stitchingChargeInr,
+    paymentLabel,
+  ];
 }

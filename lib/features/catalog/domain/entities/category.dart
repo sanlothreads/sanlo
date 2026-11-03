@@ -21,10 +21,7 @@ class Category extends Equatable {
   final String label;
 
   Category copyWith({CategoryKind? kind, String? label}) {
-    return Category(
-      kind: kind ?? this.kind,
-      label: label ?? this.label,
-    );
+    return Category(kind: kind ?? this.kind, label: label ?? this.label);
   }
 
   @override

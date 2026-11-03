@@ -134,8 +134,10 @@ class Validators {
   /// value is present, or a message naming the [fieldLabel].
   ///
   /// Validates Requirement 4.2.
-  static String? requiredError(String? input,
-      {String fieldLabel = 'This field'}) {
+  static String? requiredError(
+    String? input, {
+    String fieldLabel = 'This field',
+  }) {
     return isNonEmpty(input) ? null : '$fieldLabel is required';
   }
 }

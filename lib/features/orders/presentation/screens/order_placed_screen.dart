@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/responsive_center.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/repositories/order_repository.dart';
@@ -36,19 +37,21 @@ class OrderPlacedScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
-        child: FutureBuilder<Order>(
-          future: repository.getOrderById(orderId),
-          builder: (BuildContext context, AsyncSnapshot<Order> snapshot) {
-            // On success use the real order; on not-found / still-loading fall
-            // back to null so the UI shows the id with generic copy.
-            final Order? order =
-                snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData
-                ? snapshot.data
-                : null;
+        child: ResponsiveCenter(
+          child: FutureBuilder<Order>(
+            future: repository.getOrderById(orderId),
+            builder: (BuildContext context, AsyncSnapshot<Order> snapshot) {
+              // On success use the real order; on not-found / still-loading fall
+              // back to null so the UI shows the id with generic copy.
+              final Order? order =
+                  snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData
+                  ? snapshot.data
+                  : null;
 
-            return _OrderPlacedView(orderId: orderId, order: order);
-          },
+              return _OrderPlacedView(orderId: orderId, order: order);
+            },
+          ),
         ),
       ),
     );

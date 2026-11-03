@@ -65,12 +65,12 @@ class ImagePlaceholder extends StatelessWidget {
 
     final double effectiveIconSize =
         (height != null && height! <= 64) || (width != null && width! <= 64)
-            ? 24.0
-            : 40.0;
+        ? 24.0
+        : 40.0;
     final EdgeInsets effectivePadding =
         (height != null && height! <= 64) || (width != null && width! <= 64)
-            ? const EdgeInsets.all(AppSpacing.xs)
-            : const EdgeInsets.all(AppSpacing.md);
+        ? const EdgeInsets.all(AppSpacing.xs)
+        : const EdgeInsets.all(AppSpacing.md);
 
     return Container(
       height: height,

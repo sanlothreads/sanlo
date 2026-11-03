@@ -23,13 +23,11 @@ class StyleDetailModel {
 
   factory StyleDetailModel.fromJson(Map<String, dynamic> json) {
     return StyleDetailModel(
-      product:
-          ProductModel.fromJson(json['product'] as Map<String, dynamic>),
+      product: ProductModel.fromJson(json['product'] as Map<String, dynamic>),
       categoryLabel: json['categoryLabel'] as String,
       aboutText: json['aboutText'] as String,
       included: (json['included'] as List<dynamic>).cast<String>(),
-      variantLabels:
-          (json['variantLabels'] as List<dynamic>).cast<String>(),
+      variantLabels: (json['variantLabels'] as List<dynamic>).cast<String>(),
       stitchingChargeInr: json['stitchingChargeInr'] as int,
       paymentLabel: json['paymentLabel'] as String,
     );
