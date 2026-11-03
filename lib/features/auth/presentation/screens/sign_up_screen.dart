@@ -22,7 +22,13 @@ import '../bloc/auth_bloc.dart';
 ///
 /// Validates Requirements 1.8, 1.9, 1.10.
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+  const SignUpScreen({super.key, this.signedInUser});
+
+  /// The already-OTP-verified user reaching Sign up because no profile exists
+  /// yet. When present, its uid is carried onto the submitted draft and its
+  /// verified mobile pre-fills (and locks) the mobile field. `null` when the
+  /// screen is opened directly from the "Create an account" link.
+  final AuthUser? signedInUser;
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -34,8 +40,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
-  /// Currently selected gender; defaults to [Gender.female] per the mockup.
-  Gender _selectedGender = Gender.female;
+  /// Currently selected gender; defaults to [Gender.male] per the mockup.
+  Gender _selectedGender = Gender.male;
+
+  /// Whether the mobile field is locked because it came from a verified OTP
+  /// sign-in (true) or is free-form (false, direct "Create an account" entry).
+  bool _mobileLocked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final AuthUser? signedIn = widget.signedInUser;
+    if (signedIn?.mobile != null) {
+      _mobileController.text = signedIn!.mobile!;
+      _mobileLocked = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -54,11 +74,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _onCreateAccount() {
+    final AuthUser? signedIn = widget.signedInUser;
     final AuthUser draft = AuthUser(
+      // Preserve the authenticated uid so the profile is saved under the
+      // signed-in user rather than a fresh record.
+      id: signedIn?.id,
       isGuest: false,
       firstName: _nullIfEmpty(_firstNameController),
       lastName: _nullIfEmpty(_lastNameController),
-      mobile: _nullIfEmpty(_mobileController),
+      mobile: signedIn?.mobile ?? _nullIfEmpty(_mobileController),
       email: _nullIfEmpty(_emailController),
       gender: _selectedGender,
     );
@@ -155,6 +179,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _mobileController,
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
+                  enabled: !_mobileLocked,
                 ),
                 const SizedBox(height: AppSpacing.md),
 
@@ -179,17 +204,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Row(
                   children: <Widget>[
                     _GenderPill(
-                      label: 'Female',
-                      selected: _selectedGender == Gender.female,
-                      onTap: () =>
-                          setState(() => _selectedGender = Gender.female),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _GenderPill(
                       label: 'Male',
                       selected: _selectedGender == Gender.male,
                       onTap: () =>
                           setState(() => _selectedGender = Gender.male),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    _GenderPill(
+                      label: 'Female',
+                      selected: _selectedGender == Gender.female,
+                      onTap: () =>
+                          setState(() => _selectedGender = Gender.female),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     _GenderPill(
@@ -204,13 +229,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 BlocBuilder<AuthBloc, AuthState>(
                   buildWhen: (AuthState previous, AuthState current) =>
-                      previous.phase != current.phase,
+                      previous.phase != current.phase ||
+                      previous.errorMessage != current.errorMessage,
                   builder: (BuildContext context, AuthState state) {
                     final bool loading = state.phase == AuthPhase.creating;
-                    return PrimaryButton(
-                      label: 'Create account',
-                      loading: loading,
-                      onPressed: _onCreateAccount,
+                    final bool hasError =
+                        state.phase == AuthPhase.error &&
+                        state.errorMessage != null;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        if (hasError) ...<Widget>[
+                          Text(
+                            state.errorMessage!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.error,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                        ],
+                        PrimaryButton(
+                          label: 'Create account',
+                          loading: loading,
+                          onPressed: _onCreateAccount,
+                        ),
+                      ],
                     );
                   },
                 ),
@@ -257,6 +300,7 @@ class _LabeledField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.textCapitalization = TextCapitalization.none,
+    this.enabled = true,
   });
 
   final String label;
@@ -265,6 +309,7 @@ class _LabeledField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final TextCapitalization textCapitalization;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -282,6 +327,7 @@ class _LabeledField extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         TextField(
           controller: controller,
+          enabled: enabled,
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           textCapitalization: textCapitalization,
@@ -330,8 +376,7 @@ class _GenderPill extends StatelessWidget {
             child: Text(
               label,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color:
-                    selected ? AppColors.primary : AppColors.textSecondary,
+                color: selected ? AppColors.primary : AppColors.textSecondary,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),

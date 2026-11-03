@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:sanlo/core/theme/app_colors.dart';
 import 'package:sanlo/core/theme/app_spacing.dart';
 import 'package:sanlo/core/widgets/filter_chips.dart';
 import 'package:sanlo/core/widgets/product_card.dart';
+import 'package:sanlo/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sanlo/features/catalog/domain/entities/product.dart';
 import 'package:sanlo/features/catalog/domain/repositories/product_repository.dart';
 import 'package:sanlo/features/catalog/presentation/cubit/home_cubit.dart';
@@ -48,9 +48,7 @@ class _HomeView extends StatelessWidget {
             slivers: <Widget>[
               const SliverToBoxAdapter(child: _Header()),
               const SliverToBoxAdapter(child: _SearchField()),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.md),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
               SliverToBoxAdapter(
                 child: CategoryFilterChips(
                   categories: state.categories,
@@ -59,17 +57,11 @@ class _HomeView extends StatelessWidget {
                       context.read<HomeCubit>().applyFilter(kind),
                 ),
               ),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.md),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
               const SliverToBoxAdapter(child: _PromoBanner()),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.lg),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
               _PopularSection(state: state),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.lg),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             ],
           );
         },
@@ -78,7 +70,9 @@ class _HomeView extends StatelessWidget {
   }
 }
 
-/// Greeting header with a top-right guest "Sign in" button.
+/// Greeting header. Shows "Hello, {name}" for a signed-in user (hiding the
+/// Sign in button), or "Hello, Guest" with a top-right "Sign in" button
+/// otherwise. Driven by the app-wide [AuthBloc].
 class _Header extends StatelessWidget {
   const _Header();
 
@@ -86,44 +80,52 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Hello, Guest',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+    return BlocBuilder<AuthBloc, AuthState>(
+      builder: (BuildContext context, AuthState auth) {
+        final bool signedIn = auth.isAuthenticated;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      'Hello, ${auth.displayName}',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'What shall we stitch?',
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'What shall we stitch?',
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+              // Only guests see the Sign in button; signed-in users don't.
+              if (!signedIn) ...<Widget>[
+                const SizedBox(width: AppSpacing.sm),
+                FilledButton.tonal(
+                  onPressed: () => context.pushNamed('signIn'),
+                  child: const Text('Sign in'),
                 ),
               ],
-            ),
+            ],
           ),
-          const SizedBox(width: AppSpacing.sm),
-          FilledButton.tonal(
-            onPressed: () => context.pushNamed('signIn'),
-            child: const Text('Sign in'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -299,6 +301,7 @@ class _PopularSection extends StatelessWidget {
               final Product product = products[index];
               return ProductCard(
                 product: product,
+                colorIndex: index,
                 onTap: () => context.pushNamed(
                   'productDetails',
                   pathParameters: {'id': product.id},

@@ -55,14 +55,43 @@ class MockAuthRepository implements AuthRepository {
     return user;
   }
 
+  /// In-memory store of registered profiles, keyed by user id. Populated by
+  /// [createAccount] so [isRegistered] / [loadProfile] mirror the Firebase
+  /// behaviour without a backing database.
+  final Map<String, AuthUser> _profiles = {};
+
+  @override
+  Future<bool> isRegistered(String uid) async => _profiles.containsKey(uid);
+
+  @override
+  Future<AuthUser?> loadProfile(String uid) async => _profiles[uid];
+
   @override
   Future<AuthUser> createAccount(AuthUser draftUser) async {
-    final user = draftUser.copyWith(
-      id: 'mock-user-${DateTime.now().microsecondsSinceEpoch}',
-      isGuest: false,
-    );
+    // Prefer the signed-in user's id so a profile created right after OTP
+    // verification is keyed the same way [isRegistered] later looks it up.
+    final String id =
+        _currentUser?.id ??
+        draftUser.id ??
+        'mock-user-${DateTime.now().microsecondsSinceEpoch}';
+    final user = draftUser.copyWith(id: id, isGuest: false);
+    _profiles[id] = user;
     _currentUser = user;
     return user;
+  }
+
+  @override
+  Future<AuthUser> updateProfile(AuthUser user) async {
+    // Pin uid + mobile to the current identity, then store the edit.
+    final AuthUser toSave = user.copyWith(
+      id: _currentUser?.id ?? user.id,
+      isGuest: false,
+      mobile: _currentUser?.mobile ?? user.mobile,
+    );
+    final String? id = toSave.id;
+    if (id != null) _profiles[id] = toSave;
+    _currentUser = toSave;
+    return toSave;
   }
 
   @override
@@ -70,5 +99,10 @@ class MockAuthRepository implements AuthRepository {
     const user = AuthUser.guest();
     _currentUser = user;
     return user;
+  }
+
+  @override
+  Future<void> signOut() async {
+    _currentUser = null;
   }
 }

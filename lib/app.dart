@@ -37,9 +37,7 @@ class SanloApp extends StatelessWidget {
     final ServiceLocator locator = this.locator ?? ServiceLocator();
     return MultiRepositoryProvider(
       providers: <RepositoryProvider>[
-        RepositoryProvider<AuthRepository>.value(
-          value: locator.authRepository,
-        ),
+        RepositoryProvider<AuthRepository>.value(value: locator.authRepository),
         RepositoryProvider<ProductRepository>.value(
           value: locator.productRepository,
         ),
@@ -52,7 +50,8 @@ class SanloApp extends StatelessWidget {
       ],
       child: BlocProvider<AuthBloc>(
         create: (BuildContext context) =>
-            AuthBloc(authRepository: context.read<AuthRepository>()),
+            AuthBloc(authRepository: context.read<AuthRepository>())
+              ..add(const AppStarted()),
         child: MaterialApp.router(
           title: 'Sanlo',
           debugShowCheckedModeBanner: false,

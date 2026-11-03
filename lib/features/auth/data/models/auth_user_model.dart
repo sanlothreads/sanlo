@@ -15,6 +15,7 @@ class AuthUserModel {
     this.lastName,
     this.email,
     this.gender,
+    this.address,
   });
 
   final String? id;
@@ -24,6 +25,7 @@ class AuthUserModel {
   final String? lastName;
   final String? email;
   final String? gender;
+  final String? address;
 
   factory AuthUserModel.fromJson(Map<String, dynamic> json) {
     return AuthUserModel(
@@ -34,6 +36,7 @@ class AuthUserModel {
       lastName: json['lastName'] as String?,
       email: json['email'] as String?,
       gender: json['gender'] as String?,
+      address: json['address'] as String?,
     );
   }
 
@@ -46,6 +49,7 @@ class AuthUserModel {
       'lastName': lastName,
       'email': email,
       'gender': gender,
+      'address': address,
     };
   }
 
@@ -58,6 +62,7 @@ class AuthUserModel {
       lastName: entity.lastName,
       email: entity.email,
       gender: entity.gender?.name,
+      address: entity.address,
     );
   }
 
@@ -69,9 +74,8 @@ class AuthUserModel {
       firstName: firstName,
       lastName: lastName,
       email: email,
-      gender: gender == null
-          ? null
-          : Gender.values.byName(gender!),
+      gender: gender == null ? null : Gender.values.byName(gender!),
+      address: address,
     );
   }
 }

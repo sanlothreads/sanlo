@@ -72,12 +72,17 @@ class _SignInScreenState extends State<SignInScreen> {
           listener: (BuildContext context, AuthState state) {
             if (state.phase == AuthPhase.authenticated) {
               context.goNamed('home');
+            } else if (state.phase == AuthPhase.needsRegistration) {
+              // OTP verified but no profile yet: send the user to Sign up,
+              // seeding the verified mobile so they can't change it there.
+              context.pushNamed('signUp', extra: state.user);
             }
           },
           builder: (BuildContext context, AuthState state) {
             // Reveal the OTP field once a session exists (code was sent).
             final bool showOtpField = state.session != null;
-            final bool isBusy = state.phase == AuthPhase.sendingOtp ||
+            final bool isBusy =
+                state.phase == AuthPhase.sendingOtp ||
                 state.phase == AuthPhase.verifying ||
                 state.phase == AuthPhase.creating;
             final bool hasError = state.phase == AuthPhase.error;
@@ -193,7 +198,10 @@ class _SignInScreenState extends State<SignInScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.smd,
+          ),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: AppColors.surfaceMuted,

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 /// Centralized color palette for the Sanlo tailoring app.
 ///
-/// The design uses an indigo/purple primary, soft pastel card backgrounds for
-/// the product grid, near-black text with muted grey secondary text, a light
-/// grey scaffold background, and dedicated status colors for the order
-/// lifecycle (In progress / Ready / Completed).
+/// The design uses a deep crimson/maroon primary (brand red) for CTAs,
+/// selected states, progress indicators, links and the active bottom-nav tab.
+/// Product cards sit on soft pastel backgrounds, each with its own accent icon
+/// color. Text is near-black for headings with a muted slate grey for body
+/// copy, all on a warm off-white scaffold. Dedicated status colors cover the
+/// order lifecycle (In progress / Ready / Completed).
 ///
 /// All members are static so colors can be referenced without an instance,
 /// e.g. `AppColors.primary`.
@@ -16,19 +18,21 @@ abstract final class AppColors {
   // Brand / primary
   // ---------------------------------------------------------------------------
 
-  /// Indigo/purple primary used for CTAs, selected states, and accents.
-  static const Color primary = Color(0xFF5B4FE0);
+  /// Deep crimson/maroon primary used for CTAs, selected states, progress
+  /// indicators, links and accents. This is the Sanlo brand red.
+  static const Color primary = Color(0xFF9F1D2B);
 
-  /// Slightly darker indigo for pressed states and gradients.
-  static const Color primaryDark = Color(0xFF4639C4);
+  /// Slightly darker maroon for pressed states and gradients.
+  static const Color primaryDark = Color(0xFF7E1622);
 
-  /// Light indigo tint for subtle backgrounds and selected chips.
-  static const Color primaryLight = Color(0xFFEDEBFC);
+  /// Light red/pink tint for subtle backgrounds and selected chips.
+  static const Color primaryLight = Color(0xFFF9E6E9);
 
   /// Foreground color placed on top of [primary].
   static const Color onPrimary = Color(0xFFFFFFFF);
 
   /// Deep brand red used for the splash screen and app icon background.
+  /// Kept as an alias of [primary] now that the whole app is red-themed.
   static const Color brandRed = Color(0xFF9F1D2B);
 
   /// Warm cream used for the logo mark and text on [brandRed].
@@ -38,17 +42,17 @@ abstract final class AppColors {
   // Surfaces / backgrounds
   // ---------------------------------------------------------------------------
 
-  /// Light grey scaffold background behind all screens.
-  static const Color scaffoldBackground = Color(0xFFF5F5F8);
+  /// Warm off-white scaffold background behind all screens.
+  static const Color scaffoldBackground = Color(0xFFF5F2EE);
 
   /// Default card / sheet surface (white).
   static const Color surface = Color(0xFFFFFFFF);
 
   /// Subtle surface used for inputs and inactive controls.
-  static const Color surfaceMuted = Color(0xFFF0F0F4);
+  static const Color surfaceMuted = Color(0xFFF1EEEA);
 
   /// Hairline borders and dividers.
-  static const Color border = Color(0xFFE4E4EC);
+  static const Color border = Color(0xFFE6E1DB);
 
   // ---------------------------------------------------------------------------
   // Text
@@ -57,8 +61,8 @@ abstract final class AppColors {
   /// Near-black primary text.
   static const Color textPrimary = Color(0xFF1A1A22);
 
-  /// Muted grey secondary text (captions, metadata).
-  static const Color textSecondary = Color(0xFF6B6B7B);
+  /// Muted slate-grey secondary text (captions, metadata).
+  static const Color textSecondary = Color(0xFF5E6472);
 
   /// Faint grey for hints and disabled text.
   static const Color textTertiary = Color(0xFF9A9AA8);
@@ -67,24 +71,32 @@ abstract final class AppColors {
   // Pastel card backgrounds (product grid)
   // ---------------------------------------------------------------------------
 
-  /// Light lavender pastel card background.
-  static const Color cardLavender = Color(0xFFEDE9FB);
+  /// Soft red/pink pastel card background.
+  static const Color cardPink = Color(0xFFFBEAEE);
 
-  /// Soft pink pastel card background.
-  static const Color cardPink = Color(0xFFFCE7F0);
-
-  /// Warm peach pastel card background.
-  static const Color cardPeach = Color(0xFFFCEBDD);
+  /// Soft magenta/pink pastel card background.
+  static const Color cardMagenta = Color(0xFFFCE7F0);
 
   /// Fresh mint pastel card background.
-  static const Color cardMint = Color(0xFFDFF3EC);
+  static const Color cardMint = Color(0xFFE4F3EC);
+
+  /// Warm peach pastel card background.
+  static const Color cardPeach = Color(0xFFFCEEE2);
+
+  /// Cool blue pastel card background.
+  static const Color cardBlue = Color(0xFFE9EFFA);
+
+  /// Light lavender/purple pastel card background.
+  static const Color cardLavender = Color(0xFFF0EAFA);
 
   /// Ordered palette used to tint product cards in a repeating cycle.
   static const List<Color> cardPalette = <Color>[
-    cardLavender,
     cardPink,
-    cardPeach,
+    cardMagenta,
     cardMint,
+    cardPeach,
+    cardBlue,
+    cardLavender,
   ];
 
   /// Returns a pastel card background for the given index, cycling through
@@ -93,20 +105,57 @@ abstract final class AppColors {
       cardPalette[index % cardPalette.length];
 
   // ---------------------------------------------------------------------------
+  // Pastel card icon accents (product grid)
+  // ---------------------------------------------------------------------------
+
+  /// Crimson accent icon (pairs with [cardPink]).
+  static const Color iconCrimson = Color(0xFFB0203A);
+
+  /// Magenta accent icon (pairs with [cardMagenta]).
+  static const Color iconMagenta = Color(0xFFC81D73);
+
+  /// Green accent icon (pairs with [cardMint]).
+  static const Color iconGreen = Color(0xFF1E9E63);
+
+  /// Orange accent icon (pairs with [cardPeach]).
+  static const Color iconOrange = Color(0xFFE2622A);
+
+  /// Blue accent icon (pairs with [cardBlue]).
+  static const Color iconBlue = Color(0xFF2F6FD6);
+
+  /// Purple accent icon (pairs with [cardLavender]).
+  static const Color iconPurple = Color(0xFF7A3FD1);
+
+  /// Icon accent colors aligned 1:1 with [cardPalette] by index.
+  static const List<Color> iconPalette = <Color>[
+    iconCrimson,
+    iconMagenta,
+    iconGreen,
+    iconOrange,
+    iconBlue,
+    iconPurple,
+  ];
+
+  /// Returns an accent icon color for the given index, cycling through
+  /// [iconPalette]. Safe for any non-negative index.
+  static Color iconAccentForIndex(int index) =>
+      iconPalette[index % iconPalette.length];
+
+  // ---------------------------------------------------------------------------
   // Order status colors
   // ---------------------------------------------------------------------------
 
-  /// "In progress" status — indigo/blue.
-  static const Color statusInProgress = Color(0xFF5B4FE0);
+  /// "In progress" status — brand crimson.
+  static const Color statusInProgress = Color(0xFF9F1D2B);
 
   /// Soft background tint for an "In progress" badge.
-  static const Color statusInProgressBg = Color(0xFFEDEBFC);
+  static const Color statusInProgressBg = Color(0xFFF9E6E9);
 
   /// "Ready" status — green.
   static const Color statusReady = Color(0xFF1FA971);
 
   /// Soft background tint for a "Ready" badge.
-  static const Color statusReadyBg = Color(0xFFDFF3EC);
+  static const Color statusReadyBg = Color(0xFFD9F0E2);
 
   /// "Completed" status — muted grey-green.
   static const Color statusCompleted = Color(0xFF6B8577);

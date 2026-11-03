@@ -17,6 +17,7 @@ class ProductCard extends StatelessWidget {
     super.key,
     required this.product,
     required this.onTap,
+    this.colorIndex,
   });
 
   /// The product to render.
@@ -24,6 +25,12 @@ class ProductCard extends StatelessWidget {
 
   /// Called when the card is tapped.
   final VoidCallback onTap;
+
+  /// Optional position of this card in the grid. When provided, the card
+  /// cycles through the pastel [AppColors.cardPalette] / [AppColors.iconPalette]
+  /// so the grid shows the same repeating spread of colors as the mockup.
+  /// When null, the tint is derived from the product's category instead.
+  final int? colorIndex;
 
   /// Human-readable label for a product's [CategoryKind].
   ///
@@ -42,9 +49,14 @@ class ProductCard extends StatelessWidget {
     }
   }
 
-  /// Picks a stable pastel tint for the image area derived from the product's
-  /// category so the grid shows a pleasant, repeatable spread of colors.
+  /// Picks a stable pastel tint for the image area. When [colorIndex] is
+  /// provided the card cycles through [AppColors.cardPalette]; otherwise it
+  /// falls back to a tint derived from the product's category.
   Color _cardBackground() {
+    final int? index = colorIndex;
+    if (index != null) {
+      return AppColors.cardBackgroundForIndex(index);
+    }
     switch (product.category) {
       case CategoryKind.women:
         return AppColors.cardLavender;
@@ -55,6 +67,17 @@ class ProductCard extends StatelessWidget {
       case CategoryKind.all:
         return AppColors.cardPeach;
     }
+  }
+
+  /// Picks the accent color for the placeholder icon so it pairs with the
+  /// pastel [_cardBackground]. Uses [AppColors.iconPalette] when [colorIndex]
+  /// is provided, otherwise the brand [AppColors.primary].
+  Color _iconAccent() {
+    final int? index = colorIndex;
+    if (index != null) {
+      return AppColors.iconAccentForIndex(index);
+    }
+    return AppColors.primary;
   }
 
   @override
@@ -76,7 +99,7 @@ class ProductCard extends StatelessWidget {
               child: ImagePlaceholder(
                 width: double.infinity,
                 backgroundColor: _cardBackground(),
-                foregroundColor: AppColors.primary,
+                foregroundColor: _iconAccent(),
                 borderRadius: BorderRadius.zero,
               ),
             ),
@@ -91,8 +114,9 @@ class ProductCard extends StatelessWidget {
                       category,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodySmall
-                          ?.copyWith(color: AppColors.textSecondary),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                   ],
@@ -108,10 +132,7 @@ class ProductCard extends StatelessWidget {
                     readyInDays: product.readyInDays,
                   ),
                   const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    '₹${product.priceInr}',
-                    style: textTheme.titleMedium,
-                  ),
+                  Text('₹${product.priceInr}', style: textTheme.titleMedium),
                 ],
               ),
             ),
@@ -132,8 +153,9 @@ class _RatingRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final TextStyle? style =
-        textTheme.bodySmall?.copyWith(color: AppColors.textSecondary);
+    final TextStyle? style = textTheme.bodySmall?.copyWith(
+      color: AppColors.textSecondary,
+    );
 
     return Row(
       mainAxisSize: MainAxisSize.min,

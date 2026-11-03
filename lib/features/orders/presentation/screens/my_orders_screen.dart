@@ -8,6 +8,7 @@ import 'package:sanlo/core/theme/app_spacing.dart';
 import 'package:sanlo/core/widgets/image_placeholder.dart';
 import 'package:sanlo/core/widgets/section_card.dart';
 import 'package:sanlo/core/widgets/status_badge.dart';
+import 'package:sanlo/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sanlo/features/orders/domain/entities/order.dart';
 import 'package:sanlo/features/orders/domain/repositories/order_repository.dart';
 import 'package:sanlo/features/orders/presentation/cubit/orders_cubit.dart';
@@ -34,8 +35,7 @@ class MyOrdersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<OrdersCubit>(
-      create: (context) =>
-          OrdersCubit(context.read<OrderRepository>())..load(),
+      create: (context) => OrdersCubit(context.read<OrderRepository>())..load(),
       child: const _MyOrdersView(),
     );
   }
@@ -53,6 +53,13 @@ class _MyOrdersView extends StatelessWidget {
       body: SafeArea(
         child: BlocBuilder<OrdersCubit, OrdersState>(
           builder: (context, state) {
+            // A guest sees only the info banner; a signed-in user sees their
+            // order list (and not the guest banner).
+            final bool signedIn = context
+                .watch<AuthBloc>()
+                .state
+                .isAuthenticated;
+
             return ListView(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
@@ -66,15 +73,16 @@ class _MyOrdersView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                _BucketToggle(
-                  bucket: state.bucket,
-                  onSelected: (bucket) =>
-                      context.read<OrdersCubit>().selectBucket(bucket),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                const _GuestBanner(),
-                const SizedBox(height: AppSpacing.md),
-                ..._buildBody(context, state, textTheme),
+                if (signedIn) ...<Widget>[
+                  _BucketToggle(
+                    bucket: state.bucket,
+                    onSelected: (bucket) =>
+                        context.read<OrdersCubit>().selectBucket(bucket),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  ..._buildBody(context, state, textTheme),
+                ] else
+                  const _GuestBanner(),
               ],
             );
           },
@@ -120,8 +128,9 @@ class _MyOrdersView extends StatelessWidget {
           child: Center(
             child: Text(
               'No orders yet',
-              style: textTheme.bodyMedium
-                  ?.copyWith(color: AppColors.textSecondary),
+              style: textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
         ),
@@ -247,8 +256,9 @@ class _GuestBannerState extends State<_GuestBanner> {
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final TextStyle? baseStyle =
-        textTheme.bodySmall?.copyWith(color: AppColors.textSecondary);
+    final TextStyle? baseStyle = textTheme.bodySmall?.copyWith(
+      color: AppColors.textSecondary,
+    );
 
     return Container(
       width: double.infinity,
@@ -261,9 +271,7 @@ class _GuestBannerState extends State<_GuestBanner> {
         TextSpan(
           style: baseStyle,
           children: <InlineSpan>[
-            const TextSpan(
-              text: 'Showing orders for +91 98765 43210. ',
-            ),
+            const TextSpan(text: 'Showing orders for +91 98765 43210. '),
             const TextSpan(text: 'Sign in to see them on any device. '),
             TextSpan(
               text: 'Sign in',

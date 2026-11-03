@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/domain/entities/auth_user.dart';
 import '../../features/auth/presentation/screens/sign_in_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
@@ -54,17 +55,17 @@ GoRouter _buildRouter() {
         path: Routes.signUpPath,
         name: Routes.signUpName,
         builder: (BuildContext context, GoRouterState state) =>
-            const SignUpScreen(),
+            SignUpScreen(signedInUser: state.extra as AuthUser?),
       ),
 
       // --- 3-tab bottom-navigation shell -------------------------------------
       StatefulShellRoute.indexedStack(
-        builder: (
-          BuildContext context,
-          GoRouterState state,
-          StatefulNavigationShell navigationShell,
-        ) =>
-            MainShellScreen(navigationShell: navigationShell),
+        builder:
+            (
+              BuildContext context,
+              GoRouterState state,
+              StatefulNavigationShell navigationShell,
+            ) => MainShellScreen(navigationShell: navigationShell),
         branches: <StatefulShellBranch>[
           StatefulShellBranch(
             routes: <RouteBase>[

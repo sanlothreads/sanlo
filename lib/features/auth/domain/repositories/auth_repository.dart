@@ -12,11 +12,30 @@ abstract interface class AuthRepository {
   /// success; throws an `InvalidOtpFailure` on an incorrect or expired code.
   Future<AuthUser> verifyOtp({required String sessionId, required String code});
 
-  /// Creates an account from the sign-up form (mock: always succeeds).
+  /// Whether a profile record already exists in the backing store for the
+  /// user identified by [uid]. Used after OTP verification to decide whether
+  /// to send the user to Home (existing account) or to the Sign up form (new
+  /// account that must be registered first).
+  Future<bool> isRegistered(String uid);
+
+  /// Loads the stored profile for [uid], or `null` when no record exists.
+  Future<AuthUser?> loadProfile(String uid);
+
+  /// Creates an account from the sign-up form and persists the profile to the
+  /// backing store. Must be called while the user is already signed in (via
+  /// OTP), so the record is keyed by the authenticated uid.
   Future<AuthUser> createAccount(AuthUser draftUser);
+
+  /// Persists edited profile fields (first/last name, email, gender, address)
+  /// for the signed-in [user] to the backing store. The mobile number and uid
+  /// are never changed. Returns the saved user.
+  Future<AuthUser> updateProfile(AuthUser user);
 
   /// Starts a guest session (no credentials).
   Future<AuthUser> continueAsGuest();
+
+  /// Signs the current user out, ending their session.
+  Future<void> signOut();
 
   /// Currently signed-in user, or `null` if none.
   AuthUser? get currentUser;
