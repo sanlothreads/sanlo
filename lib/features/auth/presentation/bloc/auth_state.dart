@@ -35,6 +35,10 @@ enum AuthPhase {
   /// An account-creation request is in flight.
   creating,
 
+  /// A profile edit is being saved. [AuthState.user] still holds the signed-in
+  /// user; the phase returns to [authenticated] on success.
+  savingProfile,
+
   /// The user signed out; no [AuthState.user] and the app returns to Sign in.
   loggedOut,
 
@@ -74,9 +78,12 @@ class AuthState extends Equatable {
   /// A human-readable error message, present in [AuthPhase.error].
   final String? errorMessage;
 
-  /// Whether a real (non-guest) user is signed in.
+  /// Whether a real (non-guest) user is signed in. True while a profile save is
+  /// in flight too, since the user stays signed in throughout.
   bool get isAuthenticated =>
-      phase == AuthPhase.authenticated && user != null && !user!.isGuest;
+      (phase == AuthPhase.authenticated || phase == AuthPhase.savingProfile) &&
+      user != null &&
+      !user!.isGuest;
 
   /// A short display name for the signed-in user: their first name when known,
   /// otherwise "Guest". Used by the Home greeting header.

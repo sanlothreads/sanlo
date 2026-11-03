@@ -81,6 +81,20 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthUser> updateProfile(AuthUser user) async {
+    // Pin uid + mobile to the current identity, then store the edit.
+    final AuthUser toSave = user.copyWith(
+      id: _currentUser?.id ?? user.id,
+      isGuest: false,
+      mobile: _currentUser?.mobile ?? user.mobile,
+    );
+    final String? id = toSave.id;
+    if (id != null) _profiles[id] = toSave;
+    _currentUser = toSave;
+    return toSave;
+  }
+
+  @override
   Future<AuthUser> continueAsGuest() async {
     const user = AuthUser.guest();
     _currentUser = user;

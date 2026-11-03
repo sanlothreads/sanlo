@@ -26,6 +26,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<OtpVerified>(_onOtpVerified);
     on<GuestRequested>(_onGuestRequested);
     on<AccountSubmitted>(_onAccountSubmitted);
+    on<ProfileUpdated>(_onProfileUpdated);
     on<SignOutRequested>(_onSignOutRequested);
     on<AuthReset>(_onAuthReset);
   }
@@ -197,6 +198,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         state.copyWith(
           phase: AuthPhase.error,
           errorMessage: failure.message ?? 'Could not create your account.',
+        ),
+      );
+    }
+  }
+
+  /// Persists edited profile fields and refreshes [AuthState.user] on success.
+  /// The mobile/uid are pinned by the repository, so only the editable fields
+  /// change. A failure surfaces an inline error and keeps the user signed in.
+  Future<void> _onProfileUpdated(
+    ProfileUpdated event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(phase: AuthPhase.savingProfile, clearError: true));
+    try {
+      final AuthUser saved = await _authRepository.updateProfile(event.user);
+      emit(
+        state.copyWith(
+          phase: AuthPhase.authenticated,
+          user: saved,
+          clearError: true,
+        ),
+      );
+    } on Failure catch (failure) {
+      emit(
+        state.copyWith(
+          phase: AuthPhase.error,
+          errorMessage: failure.message ?? 'Could not save your changes.',
         ),
       );
     }

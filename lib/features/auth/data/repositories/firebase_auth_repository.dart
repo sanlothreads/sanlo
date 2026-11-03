@@ -210,6 +210,34 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthUser> updateProfile(AuthUser user) async {
+    final current = _auth.currentUser;
+    if (current == null) {
+      throw const AuthFailure('You must be signed in to edit your profile.');
+    }
+
+    // Keep the uid and verified mobile pinned to the signed-in identity so
+    // editing can never change them.
+    final AuthUser toSave = user.copyWith(
+      id: current.uid,
+      isGuest: false,
+      mobile: current.phoneNumber ?? user.mobile,
+    );
+
+    try {
+      // `update` merges the editable fields, preserving `createdAt` and any
+      // other keys already stored under the user's node.
+      final data = AuthUserModel.fromEntity(toSave).toJson()
+        ..['updatedAt'] = ServerValue.timestamp;
+      await _userRef(current.uid).update(data);
+    } on FirebaseException catch (e) {
+      throw AuthFailure(e.message ?? 'Could not save your changes.');
+    }
+
+    return toSave;
+  }
+
+  @override
   Future<AuthUser> continueAsGuest() async {
     final result = await _auth.signInAnonymously();
     return AuthUser(id: result.user?.uid, isGuest: true);

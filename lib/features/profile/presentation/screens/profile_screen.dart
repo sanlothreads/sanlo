@@ -67,20 +67,30 @@ class _ProfileView extends StatelessWidget {
                 ? _mergeAuth(baseProfile, auth.user!)
                 : baseProfile;
 
+            // Editing is only meaningful for a signed-in user (their record is
+            // what gets persisted). Guests fall back to the read-only view.
+            final bool editing = signedIn && state.editing;
+
             return ListView(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
                 vertical: AppSpacing.md,
               ),
               children: <Widget>[
-                _TitleRow(editing: state.editing, signedIn: signedIn),
+                _TitleRow(editing: editing, signedIn: signedIn),
                 const SizedBox(height: AppSpacing.lg),
                 _ProfileHeader(profile: profile),
                 const SizedBox(height: AppSpacing.lg),
                 _StatsRow(profile: profile),
                 const SizedBox(height: AppSpacing.lg),
-                _PersonalDetails(profile: profile),
-                if (signedIn) ...<Widget>[
+                if (editing)
+                  _EditForm(user: auth.user!)
+                else
+                  _PersonalDetails(
+                    profile: profile,
+                    address: signedIn ? auth.user!.address : null,
+                  ),
+                if (signedIn && !editing) ...<Widget>[
                   const SizedBox(height: AppSpacing.lg),
                   const _LogoutButton(),
                 ],
@@ -174,10 +184,13 @@ class _TitleRow extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
         ],
-        FilledButton.tonal(
-          onPressed: () => context.read<ProfileCubit>().startEditing(),
-          child: Text(editing ? 'Editing' : 'Edit'),
-        ),
+        // The Edit button is hidden while editing — Save / Cancel live in the
+        // form itself.
+        if (!editing)
+          FilledButton.tonal(
+            onPressed: () => context.read<ProfileCubit>().startEditing(),
+            child: const Text('Edit'),
+          ),
       ],
     );
   }
@@ -361,9 +374,12 @@ class _StatTile extends StatelessWidget {
 /// The "Personal details" section card listing name, mobile, email, and gender
 /// as label/value rows.
 class _PersonalDetails extends StatelessWidget {
-  const _PersonalDetails({required this.profile});
+  const _PersonalDetails({required this.profile, this.address});
 
   final UserProfile profile;
+
+  /// Optional postal address shown as its own row (from the signed-in user).
+  final String? address;
 
   @override
   Widget build(BuildContext context) {
@@ -381,7 +397,340 @@ class _PersonalDetails extends StatelessWidget {
           _DetailRow(label: 'Email', value: profile.email ?? '—'),
           const _RowDivider(),
           _DetailRow(label: 'Gender', value: _genderLabel(profile.gender)),
+          const _RowDivider(),
+          _DetailRow(
+            label: 'Address',
+            value: (address ?? '').trim().isEmpty ? '—' : address!.trim(),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// The editable "Personal details" form shown when the user taps Edit.
+///
+/// Lets the signed-in user edit first name, last name, email, gender, and an
+/// optional address. The mobile number is shown read-only and can't change.
+/// Save dispatches [ProfileUpdated]; a successful save (bloc returns to
+/// [AuthPhase.authenticated]) leaves edit mode. Cancel discards changes.
+class _EditForm extends StatefulWidget {
+  const _EditForm({required this.user});
+
+  /// The signed-in user whose fields seed the form.
+  final AuthUser user;
+
+  @override
+  State<_EditForm> createState() => _EditFormState();
+}
+
+class _EditFormState extends State<_EditForm> {
+  late final TextEditingController _firstNameController;
+  late final TextEditingController _lastNameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _addressController;
+  late Gender _gender;
+
+  @override
+  void initState() {
+    super.initState();
+    final AuthUser u = widget.user;
+    _firstNameController = TextEditingController(text: u.firstName ?? '');
+    _lastNameController = TextEditingController(text: u.lastName ?? '');
+    _emailController = TextEditingController(text: u.email ?? '');
+    _addressController = TextEditingController(text: u.address ?? '');
+    _gender = u.gender ?? Gender.female;
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  String? _nullIfEmpty(String text) {
+    final String trimmed = text.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  void _onSave() {
+    FocusScope.of(context).unfocus();
+    // Carry the signed-in identity through; the repository pins uid + mobile,
+    // so the edited fields are all that change.
+    final AuthUser updated = widget.user.copyWith(
+      firstName: _nullIfEmpty(_firstNameController.text),
+      lastName: _nullIfEmpty(_lastNameController.text),
+      email: _nullIfEmpty(_emailController.text),
+      gender: _gender,
+      address: _nullIfEmpty(_addressController.text),
+    );
+    context.read<AuthBloc>().add(ProfileUpdated(updated));
+  }
+
+  void _onCancel() {
+    FocusScope.of(context).unfocus();
+    context.read<ProfileCubit>().cancelEditing();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    return BlocConsumer<AuthBloc, AuthState>(
+      listenWhen: (AuthState p, AuthState c) => p.phase != c.phase,
+      listener: (BuildContext context, AuthState state) {
+        // Leave edit mode once the save completes successfully.
+        if (state.phase == AuthPhase.authenticated) {
+          context.read<ProfileCubit>().cancelEditing();
+        }
+      },
+      builder: (BuildContext context, AuthState state) {
+        final bool saving = state.phase == AuthPhase.savingProfile;
+        final bool hasError =
+            state.phase == AuthPhase.error && state.errorMessage != null;
+
+        return SectionCard(
+          title: 'Edit details',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Expanded(
+                    child: _FormField(
+                      label: 'First name',
+                      hint: 'Priya',
+                      controller: _firstNameController,
+                      enabled: !saving,
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: _FormField(
+                      label: 'Last name',
+                      hint: 'Sharma',
+                      controller: _lastNameController,
+                      enabled: !saving,
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _FormField(
+                label: 'Mobile number',
+                hint: '',
+                controller: TextEditingController(
+                  text: widget.user.mobile ?? '',
+                ),
+                enabled: false,
+                readOnly: true,
+                helperText: "Mobile can't be changed",
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _FormField(
+                label: 'Email',
+                hint: 'priya@example.com',
+                controller: _emailController,
+                enabled: !saving,
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'Gender',
+                style: textTheme.labelLarge?.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: <Widget>[
+                  _GenderPill(
+                    label: 'Female',
+                    selected: _gender == Gender.female,
+                    onTap: saving
+                        ? null
+                        : () => setState(() => _gender = Gender.female),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  _GenderPill(
+                    label: 'Male',
+                    selected: _gender == Gender.male,
+                    onTap: saving
+                        ? null
+                        : () => setState(() => _gender = Gender.male),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  _GenderPill(
+                    label: 'Other',
+                    selected: _gender == Gender.other,
+                    onTap: saving
+                        ? null
+                        : () => setState(() => _gender = Gender.other),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _FormField(
+                label: 'Address (optional)',
+                hint: 'House no., street, area, city',
+                controller: _addressController,
+                enabled: !saving,
+                textCapitalization: TextCapitalization.sentences,
+                maxLines: 3,
+              ),
+              if (hasError) ...<Widget>[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  state.errorMessage!,
+                  style: textTheme.bodySmall?.copyWith(color: AppColors.error),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: saving ? null : _onCancel,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.smd,
+                        ),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: saving ? null : _onSave,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.smd,
+                        ),
+                      ),
+                      child: saving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.onPrimary,
+                              ),
+                            )
+                          : const Text('Save'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// A labeled text field used by [_EditForm].
+class _FormField extends StatelessWidget {
+  const _FormField({
+    required this.label,
+    required this.hint,
+    required this.controller,
+    this.enabled = true,
+    this.readOnly = false,
+    this.keyboardType,
+    this.textCapitalization = TextCapitalization.none,
+    this.maxLines = 1,
+    this.helperText,
+  });
+
+  final String label;
+  final String hint;
+  final TextEditingController controller;
+  final bool enabled;
+  final bool readOnly;
+  final TextInputType? keyboardType;
+  final TextCapitalization textCapitalization;
+  final int maxLines;
+  final String? helperText;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          label,
+          style: textTheme.labelLarge?.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        TextField(
+          controller: controller,
+          enabled: enabled,
+          readOnly: readOnly,
+          keyboardType: keyboardType,
+          textCapitalization: textCapitalization,
+          maxLines: maxLines,
+          decoration: InputDecoration(hintText: hint, helperText: helperText),
+        ),
+      ],
+    );
+  }
+}
+
+/// A selectable pill for the gender segmented control in [_EditForm]. Mirrors
+/// the sign-up screen's pill styling. A null [onTap] disables it.
+class _GenderPill extends StatelessWidget {
+  const _GenderPill({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Expanded(
+      child: Material(
+        color: selected ? AppColors.primaryLight : AppColors.surfaceMuted,
+        borderRadius: AppRadius.mdAll,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppRadius.mdAll,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.smd),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: AppRadius.mdAll,
+              border: Border.all(
+                color: selected ? AppColors.primary : AppColors.border,
+                width: selected ? 1.5 : 1,
+              ),
+            ),
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: selected ? AppColors.primary : AppColors.textSecondary,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

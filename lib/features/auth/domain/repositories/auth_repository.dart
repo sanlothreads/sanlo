@@ -26,6 +26,11 @@ abstract interface class AuthRepository {
   /// OTP), so the record is keyed by the authenticated uid.
   Future<AuthUser> createAccount(AuthUser draftUser);
 
+  /// Persists edited profile fields (first/last name, email, gender, address)
+  /// for the signed-in [user] to the backing store. The mobile number and uid
+  /// are never changed. Returns the saved user.
+  Future<AuthUser> updateProfile(AuthUser user);
+
   /// Starts a guest session (no credentials).
   Future<AuthUser> continueAsGuest();
 
