@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:sanlo/core/theme/app_colors.dart';
 import 'package:sanlo/core/theme/app_spacing.dart';
 import 'package:sanlo/core/widgets/filter_chips.dart';
 import 'package:sanlo/core/widgets/product_card.dart';
+import 'package:sanlo/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sanlo/features/catalog/domain/entities/product.dart';
 import 'package:sanlo/features/catalog/domain/repositories/product_repository.dart';
 import 'package:sanlo/features/catalog/presentation/cubit/home_cubit.dart';
 import 'package:sanlo/features/catalog/presentation/cubit/home_state.dart';
-import 'package:sanlo/features/auth/presentation/bloc/auth_bloc.dart';
 
 /// The Home tab — the catalog browsing screen ("Home / all categories" mockup).
 ///

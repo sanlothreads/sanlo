@@ -239,8 +239,15 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<AuthUser> continueAsGuest() async {
-    final result = await _auth.signInAnonymously();
-    return AuthUser(id: result.user?.uid, isGuest: true);
+    // Prefer a real anonymous Firebase session, but if anonymous sign-in isn't
+    // enabled / available, fall back to a local guest so the user can still
+    // browse as a guest instead of being blocked.
+    try {
+      final result = await _auth.signInAnonymously();
+      return AuthUser(id: result.user?.uid, isGuest: true);
+    } on FirebaseAuthException {
+      return const AuthUser.guest();
+    }
   }
 
   @override

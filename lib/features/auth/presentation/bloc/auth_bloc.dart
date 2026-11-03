@@ -161,12 +161,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  /// Starts a guest session; the resulting user has `isGuest == true`.
+  /// Starts a guest session; the resulting user has `isGuest == true`. Any
+  /// failure still lands the user in a local guest session so "Continue as
+  /// guest" / "Skip" always proceeds to Home rather than silently doing
+  /// nothing.
   Future<void> _onGuestRequested(
     GuestRequested event,
     Emitter<AuthState> emit,
   ) async {
-    final user = await _authRepository.continueAsGuest();
+    AuthUser user;
+    try {
+      user = await _authRepository.continueAsGuest();
+    } catch (_) {
+      user = const AuthUser.guest();
+    }
     emit(
       state.copyWith(
         phase: AuthPhase.authenticated,
