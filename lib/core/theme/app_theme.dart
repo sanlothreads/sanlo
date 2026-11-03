@@ -6,10 +6,10 @@ import 'app_spacing.dart';
 /// Central [ThemeData] factory for the Sanlo tailoring app.
 ///
 /// The theme is assembled from the [AppColors] palette and the [AppSpacing] /
-/// [AppRadius] tokens so every screen shares the same indigo-on-light-grey
+/// [AppRadius] tokens so every screen shares the same crimson-on-off-white
 /// look: near-black headings, muted grey body text, rounded inputs, full-width
-/// indigo CTAs, rounded pastel-friendly cards, category filter chips, and an
-/// indigo/grey bottom navigation bar.
+/// crimson CTAs, rounded pastel-friendly cards, category filter chips, and a
+/// crimson/grey bottom navigation bar.
 ///
 /// Usage: `MaterialApp(theme: AppTheme.light, ...)`.
 abstract final class AppTheme {
@@ -57,7 +57,7 @@ abstract final class AppTheme {
   // Color scheme
   // ---------------------------------------------------------------------------
 
-  /// A light [ColorScheme] seeded from the indigo [AppColors.primary] and then
+  /// A light [ColorScheme] seeded from the crimson [AppColors.primary] and then
   /// pinned to the palette's surface/error/border colors so the generated
   /// tones never drift away from the mockups.
   static ColorScheme get _colorScheme {
@@ -156,9 +156,12 @@ abstract final class AppTheme {
         vertical: AppSpacing.smd,
       ),
       hintStyle: textTheme.bodyMedium?.copyWith(color: AppColors.textTertiary),
-      labelStyle: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-      floatingLabelStyle:
-          textTheme.bodyMedium?.copyWith(color: AppColors.primary),
+      labelStyle: textTheme.bodyMedium?.copyWith(
+        color: AppColors.textSecondary,
+      ),
+      floatingLabelStyle: textTheme.bodyMedium?.copyWith(
+        color: AppColors.primary,
+      ),
       helperStyle: textTheme.bodySmall,
       errorStyle: textTheme.bodySmall?.copyWith(color: AppColors.error),
       prefixIconColor: AppColors.textSecondary,
@@ -182,7 +185,7 @@ abstract final class AppTheme {
     borderRadius: AppRadius.mdAll,
   );
 
-  /// Full-width indigo elevated CTA (the primary call-to-action style).
+  /// Full-width crimson elevated CTA (the primary call-to-action style).
   static ElevatedButtonThemeData _elevatedButtonTheme(TextTheme textTheme) {
     return ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -200,7 +203,7 @@ abstract final class AppTheme {
   }
 
   /// Filled button mirrors the elevated CTA so either widget renders the same
-  /// full-width indigo button.
+  /// full-width crimson button.
   static FilledButtonThemeData _filledButtonTheme(TextTheme textTheme) {
     return FilledButtonThemeData(
       style: FilledButton.styleFrom(
@@ -215,7 +218,7 @@ abstract final class AppTheme {
     );
   }
 
-  /// Text buttons (links like "Create an account" / "Sign in") in indigo.
+  /// Text buttons (links like "Create an account" / "Sign in") in crimson.
   static TextButtonThemeData _textButtonTheme(TextTheme textTheme) {
     return TextButtonThemeData(
       style: TextButton.styleFrom(
@@ -226,7 +229,7 @@ abstract final class AppTheme {
     );
   }
 
-  /// Outlined buttons (secondary actions) with an indigo border.
+  /// Outlined buttons (secondary actions) with a crimson border.
   static OutlinedButtonThemeData _outlinedButtonTheme(TextTheme textTheme) {
     return OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
@@ -257,7 +260,7 @@ abstract final class AppTheme {
   // Chips (category filter)
   // ---------------------------------------------------------------------------
 
-  /// Pill-shaped filter chips: muted surface when unselected, indigo when
+  /// Pill-shaped filter chips: muted surface when unselected, crimson when
   /// selected, used for the Home category filter (All / Women / Men / Kids).
   static ChipThemeData _chipTheme(TextTheme textTheme) {
     return ChipThemeData(
@@ -274,8 +277,9 @@ abstract final class AppTheme {
       ),
       shape: const StadiumBorder(),
       labelStyle: textTheme.labelLarge?.copyWith(color: AppColors.textPrimary),
-      secondaryLabelStyle:
-          textTheme.labelLarge?.copyWith(color: AppColors.onPrimary),
+      secondaryLabelStyle: textTheme.labelLarge?.copyWith(
+        color: AppColors.onPrimary,
+      ),
       brightness: Brightness.light,
     );
   }
@@ -284,7 +288,7 @@ abstract final class AppTheme {
   // Bottom navigation
   // ---------------------------------------------------------------------------
 
-  /// Fixed bottom navigation bar: indigo for the selected tab, grey for the
+  /// Fixed bottom navigation bar: crimson for the selected tab, grey for the
   /// unselected tabs, on a white surface.
   static BottomNavigationBarThemeData _bottomNavigationBarTheme(
     TextTheme textTheme,
@@ -297,10 +301,12 @@ abstract final class AppTheme {
       unselectedItemColor: AppColors.textSecondary,
       selectedIconTheme: const IconThemeData(color: AppColors.primary),
       unselectedIconTheme: const IconThemeData(color: AppColors.textSecondary),
-      selectedLabelStyle:
-          textTheme.labelMedium?.copyWith(color: AppColors.primary),
-      unselectedLabelStyle:
-          textTheme.labelMedium?.copyWith(color: AppColors.textSecondary),
+      selectedLabelStyle: textTheme.labelMedium?.copyWith(
+        color: AppColors.primary,
+      ),
+      unselectedLabelStyle: textTheme.labelMedium?.copyWith(
+        color: AppColors.textSecondary,
+      ),
       showSelectedLabels: true,
       showUnselectedLabels: true,
     );

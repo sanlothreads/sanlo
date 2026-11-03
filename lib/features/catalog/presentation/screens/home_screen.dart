@@ -48,9 +48,7 @@ class _HomeView extends StatelessWidget {
             slivers: <Widget>[
               const SliverToBoxAdapter(child: _Header()),
               const SliverToBoxAdapter(child: _SearchField()),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.md),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
               SliverToBoxAdapter(
                 child: CategoryFilterChips(
                   categories: state.categories,
@@ -59,17 +57,11 @@ class _HomeView extends StatelessWidget {
                       context.read<HomeCubit>().applyFilter(kind),
                 ),
               ),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.md),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
               const SliverToBoxAdapter(child: _PromoBanner()),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.lg),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
               _PopularSection(state: state),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.lg),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
             ],
           );
         },
@@ -299,6 +291,7 @@ class _PopularSection extends StatelessWidget {
               final Product product = products[index];
               return ProductCard(
                 product: product,
+                colorIndex: index,
                 onTap: () => context.pushNamed(
                   'productDetails',
                   pathParameters: {'id': product.id},

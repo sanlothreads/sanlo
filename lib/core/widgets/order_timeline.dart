@@ -62,7 +62,7 @@ class _TimelineRow extends StatelessWidget {
     final bool emphasized = isDone || isCurrent;
 
     // Connectors leading into a done/current node are "reached" (indigo); the
-    // trailing connector is indigo only when this node is already done.
+    // trailing connector is crimson only when this node is already done.
     final Color topConnector = (isDone || isCurrent)
         ? AppColors.primary
         : AppColors.border;
