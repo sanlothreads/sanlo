@@ -154,8 +154,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     children: <Widget>[
                       Expanded(
                         child: _LabeledField(
-                          label: 'First name',
-                          hint: 'Priya',
+                          label: 'First name*',
+                          hint: 'First name',
                           controller: _firstNameController,
                           textInputAction: TextInputAction.next,
                           textCapitalization: TextCapitalization.words,
@@ -164,8 +164,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: _LabeledField(
-                          label: 'Last name',
-                          hint: 'Sharma',
+                          label: 'Last name*',
+                          hint: 'Last name',
                           controller: _lastNameController,
                           textInputAction: TextInputAction.next,
                           textCapitalization: TextCapitalization.words,
@@ -176,8 +176,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: AppSpacing.md),
 
                   _LabeledField(
-                    label: 'Mobile number',
-                    hint: '+91 98765 43210',
+                    label: 'Mobile number*',
+                    hint: 'Mobile number',
                     controller: _mobileController,
                     keyboardType: TextInputType.phone,
                     textInputAction: TextInputAction.next,
@@ -186,8 +186,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: AppSpacing.md),
 
                   _LabeledField(
-                    label: 'Email',
-                    hint: 'priya@example.com',
+                    label: 'Email (Optional)',
+                    hint: 'Email (Optional)',
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,

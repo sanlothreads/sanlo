@@ -10,8 +10,10 @@ class AdminCustomerModel {
     required this.gender,
     required this.type,
     required this.orderCount,
-    required this.lastOrderDate,
+    this.lastOrderDate,
     this.email,
+    this.registeredDate,
+    this.lastLogin,
   });
 
   final String id;
@@ -20,8 +22,10 @@ class AdminCustomerModel {
   final String? email;
   final String gender;
   final String type;
+  final String? registeredDate;
+  final String? lastLogin;
   final int orderCount;
-  final DateTime lastOrderDate;
+  final DateTime? lastOrderDate;
 
   AdminCustomer toEntity() {
     return AdminCustomer(
@@ -30,7 +34,9 @@ class AdminCustomerModel {
       mobile: mobile,
       email: email,
       gender: Gender.values.byName(gender),
-      type: CustomerType.values.byName(type),
+      type: CustomerType.registered,
+      registeredDate: registeredDate,
+      lastLogin: lastLogin,
       orderCount: orderCount,
       lastOrderDate: lastOrderDate,
     );

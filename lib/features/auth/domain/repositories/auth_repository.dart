@@ -34,6 +34,12 @@ abstract interface class AuthRepository {
   /// Starts a guest session (no credentials).
   Future<AuthUser> continueAsGuest();
 
+  /// Updates the `lastAppOpened` timestamp for an active user.
+  Future<void> updateLastAppOpened(String uid);
+
+  /// Updates the `lastOtpLogin` timestamp for a user signing in via OTP.
+  Future<void> updateLastOtpLogin(String uid);
+
   /// Signs the current user out, ending their session.
   Future<void> signOut();
 

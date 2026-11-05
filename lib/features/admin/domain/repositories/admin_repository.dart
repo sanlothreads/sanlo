@@ -21,6 +21,12 @@ abstract interface class AdminRepository {
   /// Loads all products for the Products screen.
   Future<List<AdminProduct>> loadProducts();
 
+  /// Saves (creates or updates) [product] in the catalog.
+  Future<void> saveProduct(AdminProduct product);
+
+  /// Deletes a product by [productId].
+  Future<void> deleteProduct(String productId);
+
   /// Loads all customers for the Customers screen.
   Future<List<AdminCustomer>> loadCustomers();
 }

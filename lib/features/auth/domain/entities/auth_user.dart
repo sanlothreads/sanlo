@@ -28,6 +28,10 @@ class AuthUser extends Equatable {
   /// Optional postal address the user can add/edit on their profile.
   final String? address;
 
+  final String? createdAt;
+  final String? lastAppOpened;
+  final String? lastOtpLogin;
+
   const AuthUser({
     this.id,
     this.isGuest = false,
@@ -37,6 +41,9 @@ class AuthUser extends Equatable {
     this.email,
     this.gender,
     this.address,
+    this.createdAt,
+    this.lastAppOpened,
+    this.lastOtpLogin,
   });
 
   /// Creates a guest session: no id, [isGuest] is `true`, and no personal
@@ -49,7 +56,10 @@ class AuthUser extends Equatable {
       lastName = null,
       email = null,
       gender = null,
-      address = null;
+      address = null,
+      createdAt = null,
+      lastAppOpened = null,
+      lastOtpLogin = null;
 
   /// Returns a copy with the given fields replaced.
   ///
@@ -66,6 +76,9 @@ class AuthUser extends Equatable {
     Object? email = _unset,
     Object? gender = _unset,
     Object? address = _unset,
+    Object? createdAt = _unset,
+    Object? lastAppOpened = _unset,
+    Object? lastOtpLogin = _unset,
   }) {
     return AuthUser(
       id: id ?? this.id,
@@ -76,6 +89,15 @@ class AuthUser extends Equatable {
       email: identical(email, _unset) ? this.email : email as String?,
       gender: identical(gender, _unset) ? this.gender : gender as Gender?,
       address: identical(address, _unset) ? this.address : address as String?,
+      createdAt: identical(createdAt, _unset)
+          ? this.createdAt
+          : createdAt as String?,
+      lastAppOpened: identical(lastAppOpened, _unset)
+          ? this.lastAppOpened
+          : lastAppOpened as String?,
+      lastOtpLogin: identical(lastOtpLogin, _unset)
+          ? this.lastOtpLogin
+          : lastOtpLogin as String?,
     );
   }
 
@@ -89,5 +111,8 @@ class AuthUser extends Equatable {
     email,
     gender,
     address,
+    createdAt,
+    lastAppOpened,
+    lastOtpLogin,
   ];
 }

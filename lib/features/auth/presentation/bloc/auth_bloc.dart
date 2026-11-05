@@ -45,6 +45,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     emit(state.copyWith(phase: AuthPhase.restoring, clearError: true));
     try {
+      await _authRepository.updateLastAppOpened(current.id!);
       final AuthUser profile =
           await _authRepository.loadProfile(current.id!) ?? current;
       emit(
@@ -138,8 +139,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           uid != null && await _authRepository.isRegistered(uid);
 
       if (registered) {
+        // Update lastOtpLogin and lastAppOpened for existing registered users.
+        await _authRepository.updateLastOtpLogin(uid);
         // Load the stored profile so Home/Profile have the full details.
-        // `uid` is non-null here (registered implies it), so the lookup is safe.
         final AuthUser profile = await _authRepository.loadProfile(uid) ?? user;
         emit(
           state.copyWith(
@@ -181,7 +183,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     AuthUser user;
     try {
-      user = await _authRepository.continueAsGuest();
+      user = await _authRepository.continueAsGuest().timeout(
+        const Duration(milliseconds: 500),
+        onTimeout: () => const AuthUser.guest(),
+      );
     } catch (_) {
       user = const AuthUser.guest();
     }

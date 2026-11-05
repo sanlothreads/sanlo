@@ -14,6 +14,8 @@ class Product extends Equatable {
     required this.readyInDays,
     required this.priceInr,
     required this.imageCount,
+    this.shortDescription = '',
+    this.imageUrls = const <String>[],
   });
 
   /// Stable identifier, e.g. "p_blouse".
@@ -40,6 +42,12 @@ class Product extends Equatable {
   /// Number of placeholder images, used for "[Photo x of N]" captions.
   final int imageCount;
 
+  /// Optional short description summary / tagline.
+  final String shortDescription;
+
+  /// Image URLs for this product.
+  final List<String> imageUrls;
+
   Product copyWith({
     String? id,
     CategoryKind? category,
@@ -49,6 +57,8 @@ class Product extends Equatable {
     int? readyInDays,
     int? priceInr,
     int? imageCount,
+    String? shortDescription,
+    List<String>? imageUrls,
   }) {
     return Product(
       id: id ?? this.id,
@@ -59,6 +69,8 @@ class Product extends Equatable {
       readyInDays: readyInDays ?? this.readyInDays,
       priceInr: priceInr ?? this.priceInr,
       imageCount: imageCount ?? this.imageCount,
+      shortDescription: shortDescription ?? this.shortDescription,
+      imageUrls: imageUrls ?? this.imageUrls,
     );
   }
 
@@ -72,5 +84,7 @@ class Product extends Equatable {
     readyInDays,
     priceInr,
     imageCount,
+    shortDescription,
+    imageUrls,
   ];
 }

@@ -92,7 +92,7 @@ class MockAdminRepository implements AdminRepository {
     ),
   ];
 
-  static const List<AdminProductModel> _products = [
+  static final List<AdminProductModel> _products = [
     AdminProductModel(
       id: 'p_blouse',
       name: 'Designer Blouse',
@@ -201,7 +201,9 @@ class MockAdminRepository implements AdminRepository {
       name: 'Priya Sharma',
       mobile: '+91 98765 43210',
       gender: 'female',
-      type: 'guest',
+      type: 'registered',
+      registeredDate: '20-Oct-2025 10:15 AM',
+      lastLogin: '24-Oct-2025 02:30 PM',
       orderCount: 1,
       lastOrderDate: DateTime(2025, 10, 24),
     ),
@@ -212,6 +214,8 @@ class MockAdminRepository implements AdminRepository {
       email: 'rahul@example.com',
       gender: 'male',
       type: 'registered',
+      registeredDate: '15-Oct-2025 11:00 AM',
+      lastLogin: '24-Oct-2025 05:45 PM',
       orderCount: 3,
       lastOrderDate: DateTime(2025, 10, 24),
     ),
@@ -222,6 +226,8 @@ class MockAdminRepository implements AdminRepository {
       email: 'anita@example.com',
       gender: 'female',
       type: 'registered',
+      registeredDate: '10-Oct-2025 09:30 AM',
+      lastLogin: '23-Oct-2025 01:15 PM',
       orderCount: 5,
       lastOrderDate: DateTime(2025, 10, 23),
     ),
@@ -230,7 +236,9 @@ class MockAdminRepository implements AdminRepository {
       name: 'Vikram Singh',
       mobile: '+91 97654 32109',
       gender: 'male',
-      type: 'guest',
+      type: 'registered',
+      registeredDate: '05-Oct-2025 03:20 PM',
+      lastLogin: '20-Oct-2025 04:00 PM',
       orderCount: 1,
       lastOrderDate: DateTime(2025, 10, 20),
     ),
@@ -241,37 +249,10 @@ class MockAdminRepository implements AdminRepository {
       email: 'sana@example.com',
       gender: 'female',
       type: 'registered',
+      registeredDate: '01-Oct-2025 08:45 AM',
+      lastLogin: '19-Oct-2025 12:30 PM',
       orderCount: 2,
       lastOrderDate: DateTime(2025, 10, 19),
-    ),
-    AdminCustomerModel(
-      id: 'c_meera',
-      name: 'Meera Iyer',
-      mobile: '+91 90000 12345',
-      email: 'meera@example.com',
-      gender: 'female',
-      type: 'registered',
-      orderCount: 4,
-      lastOrderDate: DateTime(2025, 10, 17),
-    ),
-    AdminCustomerModel(
-      id: 'c_arjun',
-      name: 'Arjun Rao',
-      mobile: '+91 93333 44455',
-      gender: 'male',
-      type: 'guest',
-      orderCount: 1,
-      lastOrderDate: DateTime(2025, 10, 2),
-    ),
-    AdminCustomerModel(
-      id: 'c_kavya',
-      name: 'Kavya Nair',
-      mobile: '+91 95555 66677',
-      email: 'kavya@example.com',
-      gender: 'female',
-      type: 'registered',
-      orderCount: 2,
-      lastOrderDate: DateTime(2025, 9, 21),
     ),
   ];
 
@@ -288,6 +269,24 @@ class MockAdminRepository implements AdminRepository {
   }
 
   @override
+  Future<void> saveProduct(AdminProduct product) async {
+    await Future<void>.delayed(_latency);
+    final int i = _products.indexWhere((p) => p.id == product.id);
+    final AdminProductModel model = AdminProductModel.fromEntity(product);
+    if (i >= 0) {
+      _products[i] = model;
+    } else {
+      _products.add(model);
+    }
+  }
+
+  @override
+  Future<void> deleteProduct(String productId) async {
+    await Future<void>.delayed(_latency);
+    _products.removeWhere((p) => p.id == productId);
+  }
+
+  @override
   Future<List<AdminCustomer>> loadCustomers() async {
     await Future<void>.delayed(_latency);
     return _customers.map((m) => m.toEntity()).toList(growable: false);
@@ -296,8 +295,9 @@ class MockAdminRepository implements AdminRepository {
   @override
   Future<DashboardSummary> loadDashboard() async {
     await Future<void>.delayed(_latency);
-    final List<AdminOrder> orders =
-        _orders.map((m) => m.toEntity()).toList(growable: false);
+    final List<AdminOrder> orders = _orders
+        .map((m) => m.toEntity())
+        .toList(growable: false);
     return DashboardSummary(
       totalOrders: 27,
       newToday: 3,

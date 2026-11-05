@@ -54,7 +54,9 @@ class AdminProductsScreen extends StatelessWidget {
                         child: SectionCard(
                           child: wide
                               ? ProductTable(
-                                  products: products, onEdit: onEditProduct)
+                                  products: products,
+                                  onEdit: onEditProduct,
+                                )
                               : _stacked(products),
                         ),
                       ),
@@ -87,11 +89,14 @@ class AdminProductsScreen extends StatelessWidget {
     if (wide) {
       return Row(
         children: <Widget>[
-          const Text('Products',
-              style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700)),
+          const Text(
+            'Products',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const Spacer(),
           search,
           const SizedBox(width: AppSpacing.md),
@@ -104,11 +109,14 @@ class AdminProductsScreen extends StatelessWidget {
       children: <Widget>[
         Row(
           children: <Widget>[
-            const Text('Products',
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700)),
+            const Text(
+              'Products',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             const Spacer(),
             addButton,
           ],
@@ -143,16 +151,22 @@ class AdminProductsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(p.name,
-                    style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600)),
+                Text(
+                  p.name,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
-                    '${_categoryLabel(p.category)} · \u20B9${p.priceInr} · ${p.stitchDays} days',
-                    style: const TextStyle(
-                        color: AppColors.textSecondary, fontSize: 12)),
+                  '${_categoryLabel(p.category)} · \u20B9${p.priceInr} · ${p.stitchDays} days',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),

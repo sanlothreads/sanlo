@@ -40,7 +40,15 @@ class OrderReviewStepScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        leading: const BackButton(),
+        leading: BackButton(
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.goNamed('home');
+            }
+          },
+        ),
         title: const Text('Place order'),
       ),
       body: SafeArea(
@@ -143,10 +151,29 @@ class _ProductSummary extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          const ImagePlaceholder(
-            width: 56,
-            height: 56,
-            backgroundColor: AppColors.surface,
+          ClipRRect(
+            borderRadius: AppRadius.smAll,
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: product.imageUrls.isNotEmpty
+                  ? Image.network(
+                      product.imageUrls.first,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (ctx, err, stack) => const ImagePlaceholder(
+                        width: 56,
+                        height: 56,
+                        backgroundColor: AppColors.surface,
+                      ),
+                    )
+                  : const ImagePlaceholder(
+                      width: 56,
+                      height: 56,
+                      backgroundColor: AppColors.surface,
+                    ),
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

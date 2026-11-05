@@ -1,6 +1,8 @@
 import '../../../../core/error/failures.dart';
 import '../../../catalog/domain/entities/category.dart';
 import '../../../catalog/domain/entities/product.dart';
+import '../../domain/entities/customer_details.dart';
+import '../../domain/entities/measurement_set.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/entities/order_draft.dart';
 import '../../domain/entities/order_status.dart';
@@ -206,7 +208,24 @@ class MockOrderRepository implements OrderRepository {
   }
 
   @override
-  Future<Order> placeOrder(OrderDraft draft) async {
+  Future<String> createDraftOrder(Product product) async {
+    return 'draft_${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  @override
+  Future<void> updateDraftDetails({
+    required String draftId,
+    required CustomerDetails details,
+  }) async {}
+
+  @override
+  Future<void> updateDraftMeasurements({
+    required String draftId,
+    required MeasurementSet measurements,
+  }) async {}
+
+  @override
+  Future<Order> placeOrder(OrderDraft draft, {String? draftId}) async {
     final id = 'SN-${_nextOrderNumber++}';
     final now = DateTime.now();
     final order = Order(

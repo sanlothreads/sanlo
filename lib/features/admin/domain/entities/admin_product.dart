@@ -22,6 +22,11 @@ class AdminProduct extends Equatable {
     required this.photoCount,
     required this.visibility,
     this.description = '',
+    this.shortDescription = '',
+    this.longDescription = '',
+    this.imageUrls = const <String>[],
+    this.highlights = const <String>[],
+    this.included = const <String>[],
   });
 
   /// Stable identifier, e.g. "p_formal_shirt".
@@ -52,6 +57,21 @@ class AdminProduct extends Equatable {
   /// Optional long description entered on the form.
   final String description;
 
+  /// Short 1-line summary / tagline for the product.
+  final String shortDescription;
+
+  /// Detailed long description entered on the form.
+  final String longDescription;
+
+  /// List of image URLs attached to this product (min 1, max 6).
+  final List<String> imageUrls;
+
+  /// Key feature/highlight points for this product.
+  final List<String> highlights;
+
+  /// Included-items checklist (e.g. "Lining and finishing", "One free alteration").
+  final List<String> included;
+
   AdminProduct copyWith({
     String? id,
     String? name,
@@ -62,7 +82,16 @@ class AdminProduct extends Equatable {
     int? photoCount,
     ProductVisibility? visibility,
     String? description,
+    String? shortDescription,
+    String? longDescription,
+    List<String>? imageUrls,
+    List<String>? highlights,
+    List<String>? included,
   }) {
+    final String lDesc = longDescription ?? this.longDescription;
+    final String sDesc = shortDescription ?? this.shortDescription;
+    final String desc = description ?? (lDesc.isNotEmpty ? lDesc : sDesc);
+
     return AdminProduct(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -72,7 +101,12 @@ class AdminProduct extends Equatable {
       rating: rating ?? this.rating,
       photoCount: photoCount ?? this.photoCount,
       visibility: visibility ?? this.visibility,
-      description: description ?? this.description,
+      description: desc,
+      shortDescription: sDesc,
+      longDescription: lDesc.isNotEmpty ? lDesc : desc,
+      imageUrls: imageUrls ?? this.imageUrls,
+      highlights: highlights ?? this.highlights,
+      included: included ?? this.included,
     );
   }
 
@@ -87,5 +121,10 @@ class AdminProduct extends Equatable {
     photoCount,
     visibility,
     description,
+    shortDescription,
+    longDescription,
+    imageUrls,
+    highlights,
+    included,
   ];
 }

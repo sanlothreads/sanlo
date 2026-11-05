@@ -37,9 +37,8 @@ class AdminProductsCubit extends Cubit<AdminProductsState> {
   /// Updates the search [text].
   void search(String text) => emit(state.copyWith(query: text));
 
-  /// Adds [product] when its id is new, or replaces the existing product with
-  /// the same id. List length changes by at most one.
-  void upsertProduct(AdminProduct product) {
+  /// Saves [product] to state immediately, then persists to repository.
+  Future<void> saveProduct(AdminProduct product) {
     final int i = state.allProducts.indexWhere((p) => p.id == product.id);
     final List<AdminProduct> updated = List.of(state.allProducts);
     if (i >= 0) {
@@ -48,5 +47,25 @@ class AdminProductsCubit extends Cubit<AdminProductsState> {
       updated.add(product);
     }
     emit(state.copyWith(allProducts: updated));
+
+    return _repository.saveProduct(product).catchError((_) {
+      emit(state.copyWith(error: 'Could not save product, try again'));
+    });
   }
+
+  /// Deletes [productId] from state immediately, then persists to repository.
+  Future<void> deleteProduct(String productId) {
+    final List<AdminProduct> updated = state.allProducts
+        .where((p) => p.id != productId)
+        .toList();
+    emit(state.copyWith(allProducts: updated));
+
+    return _repository.deleteProduct(productId).catchError((_) {
+      emit(state.copyWith(error: 'Could not delete product, try again'));
+    });
+  }
+
+  /// Adds [product] when its id is new, or replaces the existing product with
+  /// the same id. List length changes by at most one.
+  void upsertProduct(AdminProduct product) => saveProduct(product);
 }

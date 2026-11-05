@@ -5,7 +5,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/widgets/section_card.dart';
-import '../../../../core/widgets/status_badge.dart';
 import '../../domain/entities/admin_customer.dart';
 import '../cubit/admin_customers_cubit.dart';
 import '../cubit/admin_customers_state.dart';
@@ -41,7 +40,9 @@ class AdminCustomersScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               Expanded(
                 child: customers.isEmpty
-                    ? const Center(child: Text('No customers match your search'))
+                    ? const Center(
+                        child: Text('No customers match your search'),
+                      )
                     : SingleChildScrollView(
                         child: SectionCard(
                           child: wide
@@ -73,11 +74,14 @@ class AdminCustomersScreen extends StatelessWidget {
     if (wide) {
       return Row(
         children: <Widget>[
-          const Text('Customers',
-              style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700)),
+          const Text(
+            'Customers',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const Spacer(),
           search,
         ],
@@ -86,11 +90,14 @@ class AdminCustomersScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Text('Customers',
-            style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.w700)),
+        const Text(
+          'Customers',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: AppSpacing.md),
         search,
       ],
@@ -107,7 +114,9 @@ class AdminCustomersScreen extends StatelessWidget {
   }
 
   Widget _stackedRow(AdminCustomer c, {required bool last}) {
-    final bool registered = c.type == CustomerType.registered;
+    final String lastOrderStr = (c.orderCount > 0 && c.lastOrderDate != null)
+        ? DateFormatX.dayMonthShort(c.lastOrderDate!)
+        : '—';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.smd),
       decoration: BoxDecoration(
@@ -120,35 +129,49 @@ class AdminCustomersScreen extends StatelessWidget {
           CircleAvatar(
             radius: 16,
             backgroundColor: AppColors.primaryLight,
-            child: Text(c.initials,
-                style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700)),
+            child: Text(
+              c.initials,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(c.name,
-                    style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600)),
+                Text(
+                  c.name,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
-                    '${c.mobile} · ${c.orderCount} orders · ${DateFormatX.dayMonthShort(c.lastOrderDate)}',
+                  '${c.mobile} · Orders: ${c.orderCount} · Last Order: $lastOrderStr',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                if (c.registeredDate != null ||
+                    c.lastLogin != null) ...<Widget>[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Reg: ${c.registeredDate ?? '—'} · Login: ${c.lastLogin ?? '—'}',
                     style: const TextStyle(
-                        color: AppColors.textSecondary, fontSize: 12)),
+                      color: AppColors.textTertiary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ),
-          StatusBadge.text(
-            c.type.label,
-            color: registered ? AppColors.primary : AppColors.textSecondary,
-            background:
-                registered ? AppColors.primaryLight : AppColors.surfaceMuted,
           ),
         ],
       ),

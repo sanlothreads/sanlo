@@ -783,7 +783,7 @@ class _EditFormState extends State<_EditForm> {
                   Expanded(
                     child: _FormField(
                       label: 'First name',
-                      hint: 'Priya',
+                      hint: 'First name',
                       controller: _firstNameController,
                       enabled: !saving,
                       textCapitalization: TextCapitalization.words,
@@ -793,7 +793,7 @@ class _EditFormState extends State<_EditForm> {
                   Expanded(
                     child: _FormField(
                       label: 'Last name',
-                      hint: 'Sharma',
+                      hint: 'Last name',
                       controller: _lastNameController,
                       enabled: !saving,
                       textCapitalization: TextCapitalization.words,
@@ -804,7 +804,7 @@ class _EditFormState extends State<_EditForm> {
               const SizedBox(height: AppSpacing.md),
               _FormField(
                 label: 'Mobile number',
-                hint: '',
+                hint: 'Mobile number',
                 controller: TextEditingController(
                   text: widget.user.mobile ?? '',
                 ),
@@ -814,8 +814,8 @@ class _EditFormState extends State<_EditForm> {
               ),
               const SizedBox(height: AppSpacing.md),
               _FormField(
-                label: 'Email',
-                hint: 'priya@example.com',
+                label: 'Email (optional)',
+                hint: 'Email',
                 controller: _emailController,
                 enabled: !saving,
                 keyboardType: TextInputType.emailAddress,

@@ -35,22 +35,20 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
   }
 
   /// Selects the photo at [index], clamped to `[0, imageCount - 1]`.
-  ///
-  /// No-op when no detail has been loaded yet.
   void selectPhoto(int index) {
     final detail = state.detail;
-    if (detail == null) return;
-    final maxIndex = detail.product.imageCount - 1;
-    final clamped = index < 0
-        ? 0
-        : index > maxIndex
-        ? maxIndex
-        : index;
-    emit(state.copyWith(selectedPhotoIndex: clamped));
+    final int maxIndex = detail != null && detail.product.imageCount > 0
+        ? detail.product.imageCount - 1
+        : 0;
+    final int clamped = maxIndex > 0 ? index.clamp(0, maxIndex) : 0;
+    emit(state.copyWith(
+      selectedPhotoIndex: clamped,
+      selectedVariantIndex: clamped,
+    ));
   }
 
-  /// Selects the variant/color thumbnail at [index].
+  /// Selects the variant/color thumbnail at [index] and updates the photo index.
   void selectVariant(int index) {
-    emit(state.copyWith(selectedVariantIndex: index));
+    selectPhoto(index);
   }
 }

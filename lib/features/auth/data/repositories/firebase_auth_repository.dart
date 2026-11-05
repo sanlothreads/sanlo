@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 import '../../../../core/error/failures.dart';
+import '../../../../core/utils/date_format.dart';
 import '../../domain/entities/auth_user.dart';
 import '../../domain/entities/otp_session.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -160,11 +161,58 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
+  Future<String?> _findAdminKey(String? mobile, [String? uid]) async {
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final uidSnap = await _db.ref('admin/$uid').get();
+        if (uidSnap.exists) return uid;
+      } catch (_) {}
+    }
+
+    if (mobile == null || mobile.trim().isEmpty) return null;
+    final String target = _normMobile(mobile);
+    if (target.isEmpty) return null;
+
+    try {
+      final snapshot = await _db.ref('admin').get();
+      if (!snapshot.exists || snapshot.value == null) return null;
+      final Object? val = snapshot.value;
+      if (val is! Map) return null;
+
+      for (final MapEntry<dynamic, dynamic> entry in val.entries) {
+        final Object? data = entry.value;
+        if (data is Map) {
+          final Object? stored = data['mobile'];
+          if (stored is String && _normMobile(stored) == target) {
+            return entry.key.toString();
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  String _normMobile(String input) => input.replaceAll(RegExp(r'\D'), '');
+
   @override
   Future<bool> isRegistered(String uid) async {
     try {
+      final String? mobile =
+          _auth.currentUser?.phoneNumber ??
+          (_sessionMobiles.isNotEmpty ? _sessionMobiles.values.last : null);
+      if (mobile != null) {
+        final String? adminKey = await _findAdminKey(mobile, uid);
+        if (adminKey != null) return true;
+      }
+
       final snapshot = await _userRef(uid).get();
-      return snapshot.exists;
+      if (!snapshot.exists || snapshot.value == null) return false;
+      final Object? value = snapshot.value;
+      if (value is! Map) return false;
+      final Map map = value;
+      return map.containsKey('firstName') ||
+          map.containsKey('createdAt') ||
+          map.containsKey('mobile');
     } on FirebaseException catch (e) {
       throw AuthFailure(e.message ?? 'Could not check your account.');
     }
@@ -183,6 +231,84 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> updateLastAppOpened(String uid) async {
+    try {
+      final String? mobile =
+          _auth.currentUser?.phoneNumber ??
+          (_sessionMobiles.isNotEmpty ? _sessionMobiles.values.last : null);
+      final String? adminKey = await _findAdminKey(mobile, uid);
+      final String nowStr = DateFormatX.formatTimestamp();
+
+      if (adminKey != null) {
+        // Logged-in user is an admin: update admin section under adminKey and logged-in uid
+        final Map<String, dynamic> updates = <String, dynamic>{
+          'lastAppOpened': nowStr,
+        };
+        await _db.ref('admin/$adminKey').update(updates);
+        if (adminKey != uid) {
+          await _db.ref('admin/$uid').update(updates);
+        }
+        return;
+      }
+
+      // Otherwise: check if user exists in users section, then update
+      final snapshot = await _userRef(uid).get();
+      if (snapshot.exists && snapshot.value is Map) {
+        final Map<String, dynamic> updates = <String, dynamic>{
+          'lastAppOpened': nowStr,
+        };
+        final Map<String, dynamic> map = Map<String, dynamic>.from(
+          snapshot.value as Map,
+        );
+        if (map['createdAt'] == null) {
+          updates['createdAt'] = nowStr;
+        }
+        await _userRef(uid).update(updates);
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Future<void> updateLastOtpLogin(String uid) async {
+    try {
+      final String? mobile =
+          _auth.currentUser?.phoneNumber ??
+          (_sessionMobiles.isNotEmpty ? _sessionMobiles.values.last : null);
+      final String? adminKey = await _findAdminKey(mobile, uid);
+      final String nowStr = DateFormatX.formatTimestamp();
+
+      if (adminKey != null) {
+        // Logged-in user is an admin: update admin section under adminKey and logged-in uid
+        final Map<String, dynamic> updates = <String, dynamic>{
+          'lastOtpLogin': nowStr,
+          'lastAppOpened': nowStr,
+        };
+        await _db.ref('admin/$adminKey').update(updates);
+        if (adminKey != uid) {
+          await _db.ref('admin/$uid').update(updates);
+        }
+        return;
+      }
+
+      // Otherwise: check if user exists in users section, then update
+      final snapshot = await _userRef(uid).get();
+      if (snapshot.exists && snapshot.value is Map) {
+        final Map<String, dynamic> updates = <String, dynamic>{
+          'lastOtpLogin': nowStr,
+          'lastAppOpened': nowStr,
+        };
+        final Map<String, dynamic> map = Map<String, dynamic>.from(
+          snapshot.value as Map,
+        );
+        if (map['createdAt'] == null) {
+          updates['createdAt'] = nowStr;
+        }
+        await _userRef(uid).update(updates);
+      }
+    } catch (_) {}
+  }
+
+  @override
   Future<AuthUser> createAccount(AuthUser draftUser) async {
     // Account creation flows through phone sign-in: the user is already signed
     // in via OTP, so we key the profile record by the authenticated uid and
@@ -192,15 +318,21 @@ class FirebaseAuthRepository implements AuthRepository {
       throw const AuthFailure('You must verify your mobile before signing up.');
     }
 
+    final String nowStr = DateFormatX.formatTimestamp();
     final user = draftUser.copyWith(
       id: current.uid,
       isGuest: false,
       mobile: current.phoneNumber ?? draftUser.mobile,
+      createdAt: nowStr,
+      lastAppOpened: nowStr,
+      lastOtpLogin: nowStr,
     );
 
     try {
       final data = AuthUserModel.fromEntity(user).toJson()
-        ..['createdAt'] = ServerValue.timestamp;
+        ..['createdAt'] = nowStr
+        ..['lastAppOpened'] = nowStr
+        ..['lastOtpLogin'] = nowStr;
       await _userRef(current.uid).set(data);
     } on FirebaseException catch (e) {
       throw AuthFailure(e.message ?? 'Could not save your account.');
@@ -240,12 +372,14 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<AuthUser> continueAsGuest() async {
     // Prefer a real anonymous Firebase session, but if anonymous sign-in isn't
-    // enabled / available, fall back to a local guest so the user can still
-    // browse as a guest instead of being blocked.
+    // enabled / available or network is slow, fall back to a local guest instantly
+    // so the user is never blocked when tapping "Skip" or "Continue as guest".
     try {
-      final result = await _auth.signInAnonymously();
+      final result = await _auth.signInAnonymously().timeout(
+        const Duration(milliseconds: 500),
+      );
       return AuthUser(id: result.user?.uid, isGuest: true);
-    } on FirebaseAuthException {
+    } catch (_) {
       return const AuthUser.guest();
     }
   }

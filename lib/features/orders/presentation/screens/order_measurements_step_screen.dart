@@ -156,7 +156,15 @@ class _OrderMeasurementsStepScreenState
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        leading: const BackButton(),
+        leading: BackButton(
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.goNamed('home');
+            }
+          },
+        ),
         title: const Text('Place order'),
       ),
       body: SafeArea(

@@ -51,7 +51,9 @@ dependencies:
   # Realtime Database for persisting user profiles. 11.x is the generation that
   # pairs with firebase_core 3.x (same compatible set as firebase_auth 5.x).
   firebase_database: ^11.3.5
+  cloud_firestore: ^5.6.5
   google_fonts: ^8.1.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

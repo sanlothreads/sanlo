@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -144,12 +146,14 @@ class _LoadedView extends StatelessWidget {
                   _PhotoArea(
                     photoIndex: state.selectedPhotoIndex,
                     imageCount: product.imageCount,
+                    imageUrls: product.imageUrls,
                   ),
                   if (detail.variantLabels.isNotEmpty) ...<Widget>[
                     const SizedBox(height: AppSpacing.md),
                     _VariantThumbnails(
                       variantLabels: detail.variantLabels,
                       selectedIndex: state.selectedVariantIndex,
+                      imageUrls: product.imageUrls,
                     ),
                   ],
                   Padding(
@@ -168,6 +172,17 @@ class _LoadedView extends StatelessWidget {
                           style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
+                        if (product.shortDescription.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            product.shortDescription,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                          ),
+                        ],
                         const SizedBox(height: AppSpacing.sm),
                         _RatingLine(rating: product.rating),
                         const SizedBox(height: AppSpacing.md),
@@ -176,8 +191,14 @@ class _LoadedView extends StatelessWidget {
                           readyInDays: product.readyInDays,
                           paymentLabel: detail.paymentLabel,
                         ),
+                        if (detail.highlights.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: AppSpacing.lg),
+                          const _SectionHeading('Highlights'),
+                          const SizedBox(height: AppSpacing.sm),
+                          _HighlightsChecklist(items: detail.highlights),
+                        ],
                         const SizedBox(height: AppSpacing.lg),
-                        _SectionHeading('About this style'),
+                        const _SectionHeading('About this style'),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           detail.aboutText,
@@ -186,7 +207,7 @@ class _LoadedView extends StatelessWidget {
                         ),
                         if (detail.included.isNotEmpty) ...<Widget>[
                           const SizedBox(height: AppSpacing.lg),
-                          _SectionHeading('Included'),
+                          const _SectionHeading('Included'),
                           const SizedBox(height: AppSpacing.sm),
                           _IncludedChecklist(items: detail.included),
                         ],
@@ -207,31 +228,156 @@ class _LoadedView extends StatelessWidget {
   }
 }
 
-/// Large top photo area with the overlaid circular back button.
-class _PhotoArea extends StatelessWidget {
-  const _PhotoArea({required this.photoIndex, required this.imageCount});
+/// Large top photo area with auto-scrolling vertical carousel and manual vertical scroll support.
+class _PhotoArea extends StatefulWidget {
+  const _PhotoArea({
+    required this.photoIndex,
+    required this.imageCount,
+    required this.imageUrls,
+  });
 
   final int photoIndex;
   final int imageCount;
+  final List<String> imageUrls;
+
+  @override
+  State<_PhotoArea> createState() => _PhotoAreaState();
+}
+
+class _PhotoAreaState extends State<_PhotoArea> {
+  late final PageController _pageController;
+  Timer? _autoScrollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: widget.photoIndex);
+    _startAutoScroll();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PhotoArea oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.photoIndex != widget.photoIndex &&
+        _pageController.hasClients &&
+        _pageController.page?.round() != widget.photoIndex) {
+      _pageController.animateToPage(
+        widget.photoIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer?.cancel();
+    final int count = widget.imageUrls.isNotEmpty
+        ? widget.imageUrls.length
+        : widget.imageCount;
+    if (count <= 1) return;
+
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!mounted || !_pageController.hasClients) return;
+      final int current = _pageController.page?.round() ?? 0;
+      final int nextPage = (current + 1) % count;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoScrollTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final int count = widget.imageUrls.isNotEmpty
+        ? widget.imageUrls.length
+        : widget.imageCount;
+
     return Stack(
       children: <Widget>[
-        ImagePlaceholder(
-          height: 320,
-          width: double.infinity,
+        ClipRRect(
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(AppRadius.xl),
             bottomRight: Radius.circular(AppRadius.xl),
           ),
-          backgroundColor: AppColors.cardLavender,
-          caption: '[Photo ${photoIndex + 1} of $imageCount]',
+          child: SizedBox(
+            height: 320,
+            width: double.infinity,
+            child: PageView.builder(
+              controller: _pageController,
+              scrollDirection: Axis.horizontal,
+              itemCount: count,
+              onPageChanged: (index) {
+                context.read<ProductDetailsCubit>().selectVariant(index);
+              },
+              itemBuilder: (context, index) {
+                final bool hasImage = index < widget.imageUrls.length;
+                final String currentUrl = hasImage
+                    ? widget.imageUrls[index]
+                    : '';
+
+                if (hasImage && currentUrl.isNotEmpty) {
+                  return Image.network(
+                    currentUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: 320,
+                    errorBuilder: (ctx, err, stack) => ImagePlaceholder(
+                      height: 320,
+                      width: double.infinity,
+                      borderRadius: BorderRadius.zero,
+                      backgroundColor: AppColors.cardLavender,
+                      caption: '[Photo ${index + 1} of $count]',
+                    ),
+                  );
+                }
+
+                return ImagePlaceholder(
+                  height: 320,
+                  width: double.infinity,
+                  borderRadius: BorderRadius.zero,
+                  backgroundColor: AppColors.cardBackgroundForIndex(index),
+                  foregroundColor: AppColors.iconAccentForIndex(index),
+                  caption: '[Photo ${index + 1} of $count]',
+                );
+              },
+            ),
+          ),
         ),
         Positioned(
           top: AppSpacing.sm,
           left: AppSpacing.sm,
           child: _CircleBackButton(onPressed: () => context.pop()),
+        ),
+        Positioned(
+          bottom: AppSpacing.sm,
+          right: AppSpacing.md,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.6),
+              borderRadius: AppRadius.pillAll,
+            ),
+            child: Text(
+              '${widget.photoIndex + 1} / $count',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -267,10 +413,12 @@ class _VariantThumbnails extends StatelessWidget {
   const _VariantThumbnails({
     required this.variantLabels,
     required this.selectedIndex,
+    required this.imageUrls,
   });
 
   final List<String> variantLabels;
   final int selectedIndex;
+  final List<String> imageUrls;
 
   @override
   Widget build(BuildContext context) {
@@ -283,6 +431,8 @@ class _VariantThumbnails extends StatelessWidget {
         separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, index) {
           final selected = index == selectedIndex;
+          final bool hasUrl = index < imageUrls.length;
+
           return GestureDetector(
             onTap: () =>
                 context.read<ProductDetailsCubit>().selectVariant(index),
@@ -297,12 +447,29 @@ class _VariantThumbnails extends StatelessWidget {
                   width: 2,
                 ),
               ),
+              clipBehavior: Clip.antiAlias,
               alignment: Alignment.center,
-              child: Icon(
-                Icons.checkroom,
-                size: 22,
-                color: selected ? AppColors.primary : AppColors.textSecondary,
-              ),
+              child: hasUrl
+                  ? Image.network(
+                      imageUrls[index],
+                      fit: BoxFit.cover,
+                      width: 56,
+                      height: 56,
+                      errorBuilder: (ctx, err, stack) => Icon(
+                        Icons.checkroom,
+                        size: 22,
+                        color: selected
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
+                    )
+                  : Icon(
+                      Icons.checkroom,
+                      size: 22,
+                      color: selected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
+                    ),
             ),
           );
         },
@@ -467,6 +634,39 @@ class _SectionHeading extends StatelessWidget {
       style: Theme.of(
         context,
       ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+    );
+  }
+}
+
+/// A checklist of highlight points, each with a star icon.
+class _HighlightsChecklist extends StatelessWidget {
+  const _HighlightsChecklist({required this.items});
+
+  final List<String> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        for (final item in items)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const Icon(
+                  Icons.stars_rounded,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(child: Text(item, style: textTheme.bodyMedium)),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
