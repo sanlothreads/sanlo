@@ -161,9 +161,50 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
+  Future<String?> _findAdminKey(String? mobile, [String? uid]) async {
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        final uidSnap = await _db.ref('admin/$uid').get();
+        if (uidSnap.exists) return uid;
+      } catch (_) {}
+    }
+
+    if (mobile == null || mobile.trim().isEmpty) return null;
+    final String target = _normMobile(mobile);
+    if (target.isEmpty) return null;
+
+    try {
+      final snapshot = await _db.ref('admin').get();
+      if (!snapshot.exists || snapshot.value == null) return null;
+      final Object? val = snapshot.value;
+      if (val is! Map) return null;
+
+      for (final MapEntry<dynamic, dynamic> entry in val.entries) {
+        final Object? data = entry.value;
+        if (data is Map) {
+          final Object? stored = data['mobile'];
+          if (stored is String && _normMobile(stored) == target) {
+            return entry.key.toString();
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  String _normMobile(String input) => input.replaceAll(RegExp(r'\D'), '');
+
   @override
   Future<bool> isRegistered(String uid) async {
     try {
+      final String? mobile =
+          _auth.currentUser?.phoneNumber ??
+          (_sessionMobiles.isNotEmpty ? _sessionMobiles.values.last : null);
+      if (mobile != null) {
+        final String? adminKey = await _findAdminKey(mobile, uid);
+        if (adminKey != null) return true;
+      }
+
       final snapshot = await _userRef(uid).get();
       if (!snapshot.exists || snapshot.value == null) return false;
       final Object? value = snapshot.value;
@@ -192,41 +233,78 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> updateLastAppOpened(String uid) async {
     try {
+      final String? mobile =
+          _auth.currentUser?.phoneNumber ??
+          (_sessionMobiles.isNotEmpty ? _sessionMobiles.values.last : null);
+      final String? adminKey = await _findAdminKey(mobile, uid);
       final String nowStr = DateFormatX.formatTimestamp();
+
+      if (adminKey != null) {
+        // Logged-in user is an admin: update admin section under adminKey and logged-in uid
+        final Map<String, dynamic> updates = <String, dynamic>{
+          'lastAppOpened': nowStr,
+        };
+        await _db.ref('admin/$adminKey').update(updates);
+        if (adminKey != uid) {
+          await _db.ref('admin/$uid').update(updates);
+        }
+        return;
+      }
+
+      // Otherwise: check if user exists in users section, then update
       final snapshot = await _userRef(uid).get();
-      final Map<String, dynamic> updates = <String, dynamic>{
-        'lastAppOpened': nowStr,
-      };
       if (snapshot.exists && snapshot.value is Map) {
+        final Map<String, dynamic> updates = <String, dynamic>{
+          'lastAppOpened': nowStr,
+        };
         final Map<String, dynamic> map = Map<String, dynamic>.from(
           snapshot.value as Map,
         );
         if (map['createdAt'] == null) {
           updates['createdAt'] = nowStr;
         }
+        await _userRef(uid).update(updates);
       }
-      await _userRef(uid).update(updates);
     } catch (_) {}
   }
 
   @override
   Future<void> updateLastOtpLogin(String uid) async {
     try {
+      final String? mobile =
+          _auth.currentUser?.phoneNumber ??
+          (_sessionMobiles.isNotEmpty ? _sessionMobiles.values.last : null);
+      final String? adminKey = await _findAdminKey(mobile, uid);
       final String nowStr = DateFormatX.formatTimestamp();
+
+      if (adminKey != null) {
+        // Logged-in user is an admin: update admin section under adminKey and logged-in uid
+        final Map<String, dynamic> updates = <String, dynamic>{
+          'lastOtpLogin': nowStr,
+          'lastAppOpened': nowStr,
+        };
+        await _db.ref('admin/$adminKey').update(updates);
+        if (adminKey != uid) {
+          await _db.ref('admin/$uid').update(updates);
+        }
+        return;
+      }
+
+      // Otherwise: check if user exists in users section, then update
       final snapshot = await _userRef(uid).get();
-      final Map<String, dynamic> updates = <String, dynamic>{
-        'lastOtpLogin': nowStr,
-        'lastAppOpened': nowStr,
-      };
       if (snapshot.exists && snapshot.value is Map) {
+        final Map<String, dynamic> updates = <String, dynamic>{
+          'lastOtpLogin': nowStr,
+          'lastAppOpened': nowStr,
+        };
         final Map<String, dynamic> map = Map<String, dynamic>.from(
           snapshot.value as Map,
         );
         if (map['createdAt'] == null) {
           updates['createdAt'] = nowStr;
         }
+        await _userRef(uid).update(updates);
       }
-      await _userRef(uid).update(updates);
     } catch (_) {}
   }
 
