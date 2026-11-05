@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/di/service_locator.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/admin/domain/repositories/admin_access_repository.dart';
+import 'features/admin/domain/repositories/admin_repository.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/catalog/domain/repositories/product_repository.dart';
@@ -46,6 +48,12 @@ class SanloApp extends StatelessWidget {
         ),
         RepositoryProvider<ProfileRepository>.value(
           value: locator.profileRepository,
+        ),
+        RepositoryProvider<AdminRepository>.value(
+          value: locator.adminRepository,
+        ),
+        RepositoryProvider<AdminAccessRepository>.value(
+          value: locator.adminAccessRepository,
         ),
       ],
       child: BlocProvider<AuthBloc>(

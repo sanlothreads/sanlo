@@ -33,6 +33,9 @@ abstract final class AppSpacing {
   /// edge-to-edge; on phones it has no effect. See [ResponsiveCenter].
   static const double maxContentWidth = 720;
 
+  /// Width at or above which admin screens switch to the wide (sidebar) layout.
+  static const double wideBreakpoint = 900;
+
   /// Common horizontal page padding applied to screens.
   static const EdgeInsets pagePadding = EdgeInsets.symmetric(horizontal: md);
 

@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/image_placeholder.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/responsive_center.dart';
+import '../../../admin/domain/repositories/admin_access_repository.dart';
 import '../bloc/auth_bloc.dart';
 
 /// The Sign in / Welcome screen.
@@ -34,6 +36,9 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
 
+  /// Guards against running the post-auth navigation more than once.
+  bool _routing = false;
+
   @override
   void initState() {
     super.initState();
@@ -58,8 +63,41 @@ class _SignInScreenState extends State<SignInScreen> {
     context.read<AuthBloc>().add(OtpVerified(_otpController.text.trim()));
   }
 
+  void _changeNumber() {
+    _otpController.clear();
+    context.read<AuthBloc>().add(const AuthReset());
+  }
+
   void _continueAsGuest() {
     context.read<AuthBloc>().add(const GuestRequested());
+  }
+
+  /// After OTP verification, check the admin allow-list (Firebase `admin` node)
+  /// *first*: an admin lands on the Admin Dashboard regardless of whether they
+  /// have a customer profile. Otherwise fall back to the normal flow — Home for
+  /// a registered user, or Sign up when the number has no profile yet.
+  Future<void> _handleAuthed(AuthState state) async {
+    if (_routing) return;
+    _routing = true;
+
+    final String? mobile = state.user?.mobile;
+    final AdminAccessRepository adminAccess = context
+        .read<AdminAccessRepository>();
+    final bool isAdmin = await adminAccess.isAdmin(mobile);
+    if (!mounted) return;
+
+    if (isAdmin) {
+      context.goNamed(Routes.adminDashboardName);
+      return;
+    }
+
+    if (state.phase == AuthPhase.needsRegistration) {
+      _routing = false; // allow retry if they come back
+      context.pushNamed(Routes.signUpName, extra: state.user);
+      return;
+    }
+
+    context.goNamed(Routes.homeName);
   }
 
   @override
@@ -72,12 +110,9 @@ class _SignInScreenState extends State<SignInScreen> {
         child: ResponsiveCenter(
           child: BlocConsumer<AuthBloc, AuthState>(
             listener: (BuildContext context, AuthState state) {
-              if (state.phase == AuthPhase.authenticated) {
-                context.goNamed('home');
-              } else if (state.phase == AuthPhase.needsRegistration) {
-                // OTP verified but no profile yet: send the user to Sign up,
-                // seeding the verified mobile so they can't change it there.
-                context.pushNamed('signUp', extra: state.user);
+              if (state.phase == AuthPhase.authenticated ||
+                  state.phase == AuthPhase.needsRegistration) {
+                _handleAuthed(state);
               }
             },
             builder: (BuildContext context, AuthState state) {
@@ -126,10 +161,10 @@ class _SignInScreenState extends State<SignInScreen> {
                     const SizedBox(height: AppSpacing.lg),
                     _buildMobileLabel(textTheme),
                     const SizedBox(height: AppSpacing.sm),
-                    _buildMobileRow(enabled: !isBusy),
+                    _buildMobileRow(enabled: !isBusy && !showOtpField),
                     if (showOtpField) ...<Widget>[
                       const SizedBox(height: AppSpacing.md),
-                      _buildOtpLabel(textTheme),
+                      _buildOtpLabel(textTheme, isBusy: isBusy),
                       const SizedBox(height: AppSpacing.sm),
                       _buildOtpField(enabled: !isBusy),
                     ],
@@ -144,7 +179,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ],
                     const SizedBox(height: AppSpacing.lg),
                     PrimaryButton(
-                      label: showOtpField ? 'Verify' : 'Send OTP',
+                      label: showOtpField ? 'Verify OTP' : 'Send OTP',
                       loading: isBusy,
                       onPressed: showOtpField ? _verifyOtp : _sendOtp,
                     ),
@@ -224,7 +259,12 @@ class _SignInScreenState extends State<SignInScreen> {
           child: TextField(
             controller: _mobileController,
             enabled: enabled,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.next,
+            autofillHints: const <String>[
+              AutofillHints.telephoneNumberNational,
+            ],
+            onSubmitted: enabled ? (_) => _sendOtp() : null,
             inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(10),
@@ -236,13 +276,42 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Widget _buildOtpLabel(TextTheme textTheme) {
-    return Text(
-      'Enter OTP',
-      style: textTheme.labelLarge?.copyWith(
-        color: AppColors.textPrimary,
-        fontWeight: FontWeight.w600,
-      ),
+  Widget _buildOtpLabel(TextTheme textTheme, {required bool isBusy}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(
+          'Enter OTP',
+          style: textTheme.labelLarge?.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Row(
+          children: <Widget>[
+            TextButton(
+              onPressed: isBusy ? null : _sendOtp,
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Resend code'),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            GestureDetector(
+              onTap: isBusy ? null : _changeNumber,
+              child: Text(
+                'Change number',
+                style: textTheme.bodySmall?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -251,6 +320,9 @@ class _SignInScreenState extends State<SignInScreen> {
       controller: _otpController,
       enabled: enabled,
       keyboardType: TextInputType.number,
+      textInputAction: TextInputAction.done,
+      autofillHints: const <String>[AutofillHints.oneTimeCode],
+      onSubmitted: enabled ? (_) => _verifyOtp() : null,
       inputFormatters: <TextInputFormatter>[
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(6),
