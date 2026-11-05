@@ -74,6 +74,7 @@ class AdminDashboardScreen extends StatelessWidget {
 
   Widget _wide(BuildContext context, DashboardSummary s) {
     final DateTime now = DateTime.now();
+    final String greeting = _greetingWithName(context, greetingFor(now));
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -95,7 +96,7 @@ class AdminDashboardScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      greetingFor(now),
+                      greeting,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 28,
@@ -180,6 +181,19 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
+  /// Appends the admin's first name to [base], e.g. "Good morning, Himanshu".
+  /// Falls back to just [base] when the admin name has not resolved yet.
+  String _greetingWithName(BuildContext context, String base) {
+    final AdminAccount? account = context.watch<AdminSessionCubit>().state;
+    final String name = (account?.name ?? '').trim();
+    if (name.isEmpty) return base;
+    final String firstName = name.split(RegExp(r'\s+')).first;
+    final String pretty = firstName.isEmpty
+        ? firstName
+        : firstName[0].toUpperCase() + firstName.substring(1).toLowerCase();
+    return '$base, $pretty';
+  }
+
   // --- Narrow layout --------------------------------------------------------
 
   Widget _narrow(BuildContext context, DashboardSummary s) {
@@ -230,6 +244,8 @@ class AdminDashboardScreen extends StatelessWidget {
 
   Widget _mobileHeader(BuildContext context, DashboardSummary s) {
     final AdminAccount? account = context.watch<AdminSessionCubit>().state;
+    final DateTime now = DateTime.now();
+    final String greeting = _greetingWithName(context, greetingFor(now));
     return Container(
       color: AppColors.textPrimary,
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -239,7 +255,7 @@ class AdminDashboardScreen extends StatelessWidget {
           Row(
             children: <Widget>[
               const Text(
-                'Sanlo',
+                'SANLO',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -279,7 +295,7 @@ class AdminDashboardScreen extends StatelessWidget {
           if (account != null && account.name.isNotEmpty) ...<Widget>[
             const SizedBox(height: AppSpacing.xs),
             Text(
-              account.name,
+              greeting,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.72),
                 fontSize: 13,
