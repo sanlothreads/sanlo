@@ -140,13 +140,36 @@ class _HeaderCard extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const ImagePlaceholder(
-                width: 56,
-                height: 56,
-                icon: Icons.checkroom,
+              ClipRRect(
                 borderRadius: AppRadius.mdAll,
-                backgroundColor: Colors.white24,
-                foregroundColor: AppColors.onPrimary,
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: order.product.imageUrls.isNotEmpty
+                      ? Image.network(
+                          order.product.imageUrls.first,
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) =>
+                              const ImagePlaceholder(
+                                width: 56,
+                                height: 56,
+                                icon: Icons.checkroom,
+                                borderRadius: AppRadius.mdAll,
+                                backgroundColor: Colors.white24,
+                                foregroundColor: AppColors.onPrimary,
+                              ),
+                        )
+                      : const ImagePlaceholder(
+                          width: 56,
+                          height: 56,
+                          icon: Icons.checkroom,
+                          borderRadius: AppRadius.mdAll,
+                          backgroundColor: Colors.white24,
+                          foregroundColor: AppColors.onPrimary,
+                        ),
+                ),
               ),
               const SizedBox(width: AppSpacing.smd),
               Expanded(

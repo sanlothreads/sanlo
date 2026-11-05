@@ -258,7 +258,21 @@ class FirebaseOrderRepository implements OrderRepository {
   @override
   Future<Order> getOrderById(String orderId) async {
     try {
-      final doc = await _ordersRef.doc(orderId).get();
+      final String cleanId = orderId.replaceAll('#', '').trim();
+
+      // First try exact document ID lookup
+      var doc = await _ordersRef.doc(cleanId).get();
+      if (!doc.exists || doc.data() == null) {
+        // Query by id field in Firestore
+        final query = await _ordersRef
+            .where('id', isEqualTo: cleanId)
+            .limit(1)
+            .get();
+        if (query.docs.isNotEmpty) {
+          doc = query.docs.first;
+        }
+      }
+
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
         final String statusStr = data['status'] as String? ?? 'draft';
@@ -274,6 +288,70 @@ class FirebaseOrderRepository implements OrderRepository {
 
   @override
   Future<List<TimelineStep>> getTimeline(String orderId) async {
-    return _mockFallback.getTimeline(orderId);
+    try {
+      final Order order = await getOrderById(orderId);
+      final DateTime placed = order.placedDate;
+      final double progress = order.progress;
+      final bool isCompleted = order.status == OrderStatus.completed;
+
+      return <TimelineStep>[
+        TimelineStep(
+          stage: TimelineStage.orderPlaced,
+          label: 'Order placed',
+          state: StepState.done,
+          timestamp: placed,
+        ),
+        TimelineStep(
+          stage: TimelineStage.measurementDone,
+          label: 'Measurement done',
+          state: progress >= 0.2 || isCompleted
+              ? StepState.done
+              : (progress >= 0.05 ? StepState.current : StepState.pending),
+          timestamp: progress >= 0.2
+              ? placed.add(const Duration(hours: 6))
+              : null,
+        ),
+        TimelineStep(
+          stage: TimelineStage.stitchingStarted,
+          label: 'Stitching started',
+          state: progress >= 0.5 || isCompleted
+              ? StepState.done
+              : (progress >= 0.2 ? StepState.current : StepState.pending),
+          timestamp: progress >= 0.5
+              ? placed.add(const Duration(days: 1))
+              : null,
+        ),
+        TimelineStep(
+          stage: TimelineStage.stitchingFinished,
+          label: 'Stitching finished',
+          state: progress >= 0.75 || isCompleted
+              ? StepState.done
+              : (progress >= 0.5 ? StepState.current : StepState.pending),
+          timestamp: progress >= 0.75
+              ? placed.add(const Duration(days: 2))
+              : null,
+        ),
+        TimelineStep(
+          stage: TimelineStage.finalTouchUp,
+          label: 'Final touch-up',
+          state: progress >= 0.9 || isCompleted
+              ? StepState.done
+              : (progress >= 0.75 ? StepState.current : StepState.pending),
+          timestamp: progress >= 0.9
+              ? placed.add(const Duration(days: 3))
+              : null,
+        ),
+        TimelineStep(
+          stage: TimelineStage.allSet,
+          label: 'All set',
+          state: isCompleted
+              ? StepState.done
+              : (progress >= 0.9 ? StepState.current : StepState.pending),
+          timestamp: isCompleted ? order.expectedReady : null,
+        ),
+      ];
+    } catch (_) {
+      return _mockFallback.getTimeline(orderId);
+    }
   }
 }
