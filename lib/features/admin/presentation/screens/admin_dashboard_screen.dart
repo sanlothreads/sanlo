@@ -166,14 +166,15 @@ class AdminDashboardScreen extends StatelessWidget {
 
   Widget _stageGrid(BuildContext context, DashboardSummary s) {
     final double width = MediaQuery.sizeOf(context).width;
-    final int columns = width >= 1200 ? 6 : 3;
+    final int columns = width >= 1200 ? 6 : (width >= 600 ? 3 : 2);
+    final double aspectRatio = width >= 1200 ? 1.4 : (width >= 600 ? 1.1 : 0.95);
     return GridView.count(
       crossAxisCount: columns,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: AppSpacing.md,
       crossAxisSpacing: AppSpacing.md,
-      childAspectRatio: 1.6,
+      childAspectRatio: aspectRatio,
       children: <Widget>[
         for (final OrderStage stage in OrderStage.values)
           StageCountCard(stage: stage, count: s.stageCounts[stage] ?? 0),

@@ -92,7 +92,7 @@ class MockAdminRepository implements AdminRepository {
     ),
   ];
 
-  static const List<AdminProductModel> _products = [
+  static final List<AdminProductModel> _products = [
     AdminProductModel(
       id: 'p_blouse',
       name: 'Designer Blouse',
@@ -288,6 +288,24 @@ class MockAdminRepository implements AdminRepository {
   }
 
   @override
+  Future<void> saveProduct(AdminProduct product) async {
+    await Future<void>.delayed(_latency);
+    final int i = _products.indexWhere((p) => p.id == product.id);
+    final AdminProductModel model = AdminProductModel.fromEntity(product);
+    if (i >= 0) {
+      _products[i] = model;
+    } else {
+      _products.add(model);
+    }
+  }
+
+  @override
+  Future<void> deleteProduct(String productId) async {
+    await Future<void>.delayed(_latency);
+    _products.removeWhere((p) => p.id == productId);
+  }
+
+  @override
   Future<List<AdminCustomer>> loadCustomers() async {
     await Future<void>.delayed(_latency);
     return _customers.map((m) => m.toEntity()).toList(growable: false);
@@ -296,8 +314,9 @@ class MockAdminRepository implements AdminRepository {
   @override
   Future<DashboardSummary> loadDashboard() async {
     await Future<void>.delayed(_latency);
-    final List<AdminOrder> orders =
-        _orders.map((m) => m.toEntity()).toList(growable: false);
+    final List<AdminOrder> orders = _orders
+        .map((m) => m.toEntity())
+        .toList(growable: false);
     return DashboardSummary(
       totalOrders: 27,
       newToday: 3,

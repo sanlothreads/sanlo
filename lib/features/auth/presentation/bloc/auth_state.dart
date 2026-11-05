@@ -81,7 +81,8 @@ class AuthState extends Equatable {
   /// Whether a real (non-guest) user is signed in. True while a profile save is
   /// in flight too, since the user stays signed in throughout.
   bool get isAuthenticated =>
-      (phase == AuthPhase.authenticated || phase == AuthPhase.savingProfile) &&
+      (phase == AuthPhase.authenticated ||
+          phase == AuthPhase.savingProfile) &&
       user != null &&
       !user!.isGuest;
 

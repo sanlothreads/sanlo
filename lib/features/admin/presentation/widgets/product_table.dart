@@ -8,11 +8,7 @@ import '../../domain/entities/admin_product.dart';
 
 /// The Products table (wide layout) with a per-row Edit action.
 class ProductTable extends StatelessWidget {
-  const ProductTable({
-    super.key,
-    required this.products,
-    required this.onEdit,
-  });
+  const ProductTable({super.key, required this.products, required this.onEdit});
 
   final List<AdminProduct> products;
   final ValueChanged<AdminProduct> onEdit;
@@ -86,16 +82,22 @@ class ProductTable extends StatelessWidget {
                   borderRadius: AppRadius.smAll,
                 ),
                 alignment: Alignment.center,
-                child: const Icon(Icons.checkroom,
-                    size: 16, color: AppColors.iconCrimson),
+                child: const Icon(
+                  Icons.checkroom,
+                  size: 16,
+                  color: AppColors.iconCrimson,
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Flexible(
-                child: Text(p.name,
-                    style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600)),
+                child: Text(
+                  p.name,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -111,8 +113,9 @@ class ProductTable extends StatelessWidget {
             child: StatusBadge.text(
               p.visibility.label,
               color: live ? AppColors.statusReady : AppColors.textSecondary,
-              background:
-                  live ? AppColors.statusReadyBg : AppColors.surfaceMuted,
+              background: live
+                  ? AppColors.statusReadyBg
+                  : AppColors.surfaceMuted,
             ),
           ),
         ),
@@ -129,10 +132,15 @@ class ProductTable extends StatelessWidget {
     );
   }
 
-  static const TextStyle _body =
-      TextStyle(color: AppColors.textSecondary, fontSize: 13);
+  static const TextStyle _body = TextStyle(
+    color: AppColors.textSecondary,
+    fontSize: 13,
+  );
   static const TextStyle _bodyBold = TextStyle(
-      color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600);
+    color: AppColors.textPrimary,
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+  );
 }
 
 class _C extends StatelessWidget {
@@ -140,8 +148,10 @@ class _C extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.smd, horizontal: AppSpacing.xs),
-        child: child,
-      );
+    padding: const EdgeInsets.symmetric(
+      vertical: AppSpacing.smd,
+      horizontal: AppSpacing.xs,
+    ),
+    child: child,
+  );
 }

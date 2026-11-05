@@ -42,11 +42,13 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
     final AdminProduct? p = widget.product;
     _name = TextEditingController(text: p?.name ?? '');
     _price = TextEditingController(text: p != null ? '${p.priceInr}' : '');
-    _stitchDays =
-        TextEditingController(text: p != null ? '${p.stitchDays}' : '');
+    _stitchDays = TextEditingController(
+      text: p != null ? '${p.stitchDays}' : '',
+    );
     _rating = TextEditingController(text: p != null ? '${p.rating}' : '');
-    _photoCount =
-        TextEditingController(text: p != null ? '${p.photoCount}' : '');
+    _photoCount = TextEditingController(
+      text: p != null ? '${p.photoCount}' : '',
+    );
     _description = TextEditingController(text: p?.description ?? '');
     _category = p?.category ?? CategoryKind.women;
     _visibility = p?.visibility ?? ProductVisibility.live;
@@ -67,8 +69,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final AdminProduct product = AdminProduct(
-      id: widget.product?.id ??
-          'p_${DateTime.now().millisecondsSinceEpoch}',
+      id: widget.product?.id ?? 'p_${DateTime.now().millisecondsSinceEpoch}',
       name: _name.text.trim(),
       category: _category,
       priceInr: int.parse(_price.text.trim()),
@@ -87,9 +88,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Edit product' : 'Add product'),
-      ),
+      appBar: AppBar(title: Text(_isEditing ? 'Edit product' : 'Add product')),
       body: SafeArea(
         child: ResponsiveCenter(
           child: SingleChildScrollView(
@@ -131,8 +130,9 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                   _field(
                     label: 'Rating',
                     controller: _rating,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
                   _field(
                     label: 'Photos',
@@ -150,8 +150,9 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   PrimaryButton(
-                      label: _isEditing ? 'Save changes' : 'Add product',
-                      onPressed: _save),
+                    label: _isEditing ? 'Save changes' : 'Add product',
+                    onPressed: _save,
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   SizedBox(
                     width: double.infinity,
@@ -182,11 +183,14 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(label,
-              style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: AppSpacing.xs),
           TextFormField(
             controller: controller,
@@ -206,11 +210,14 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Text('Category',
-              style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600)),
+          const Text(
+            'Category',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: AppSpacing.xs),
           DropdownButtonFormField<CategoryKind>(
             initialValue: _category,
@@ -233,16 +240,22 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       child: Row(
         children: <Widget>[
           const Expanded(
-            child: Text('Visible to customers',
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500)),
+            child: Text(
+              'Visible to customers',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           Switch(
             value: _visibility == ProductVisibility.live,
-            onChanged: (on) => setState(() => _visibility =
-                on ? ProductVisibility.live : ProductVisibility.hidden),
+            onChanged: (on) => setState(
+              () => _visibility = on
+                  ? ProductVisibility.live
+                  : ProductVisibility.hidden,
+            ),
           ),
         ],
       ),
