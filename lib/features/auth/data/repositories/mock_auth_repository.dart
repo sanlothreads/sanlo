@@ -102,6 +102,12 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> updateLastAppOpened(String uid) async {}
+
+  @override
+  Future<void> updateLastOtpLogin(String uid) async {}
+
+  @override
   Future<void> signOut() async {
     _currentUser = null;
   }

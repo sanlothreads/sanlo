@@ -1,7 +1,6 @@
-/// Small date-formatting helpers used by the admin screens.
-///
-/// Implemented without the `intl` package to avoid adding a dependency for the
-/// two simple formats the designs need.
+import 'package:intl/intl.dart';
+
+/// Small date-formatting helpers used by the app and admin screens.
 abstract final class DateFormatX {
   const DateFormatX._();
 
@@ -55,5 +54,12 @@ abstract final class DateFormatX {
   /// e.g. "29 Oct".
   static String dayMonthShort(DateTime d) {
     return '${d.day} ${_monthsShort[d.month - 1]}';
+  }
+
+  /// Formats a [DateTime] in `dd-MMM-yyyy hh:mm a` format using `intl`'s [DateFormat]
+  /// (e.g. "24-May-2025 02:30 PM"). Defaults to [DateTime.now()] if omitted.
+  static String formatTimestamp([DateTime? dateTime]) {
+    final DateTime dt = (dateTime ?? DateTime.now()).toLocal();
+    return DateFormat('dd-MMM-yyyy hh:mm a').format(dt);
   }
 }
