@@ -269,7 +269,7 @@ class _SignInScreenState extends State<SignInScreen> {
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(10),
             ],
-            decoration: const InputDecoration(hintText: '98765 43210'),
+            decoration: const InputDecoration(hintText: 'Mobile Number'),
           ),
         ),
       ],
