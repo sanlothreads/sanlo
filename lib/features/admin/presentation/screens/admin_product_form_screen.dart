@@ -192,7 +192,8 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
     setState(() => _isSaving = true);
 
     final AdminProduct product = AdminProduct(
-      id: widget.product?.id ?? 'p_${DateTime.now().millisecondsSinceEpoch}',
+      // Empty id on create -> the repository assigns a unique Firestore doc id.
+      id: widget.product?.id ?? '',
       name: _name.text.trim(),
       category: _category,
       priceInr: int.parse(_price.text.trim()),

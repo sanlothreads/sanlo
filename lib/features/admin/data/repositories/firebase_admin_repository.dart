@@ -57,13 +57,17 @@ class FirebaseAdminRepository implements AdminRepository {
   }
 
   @override
-  Future<void> saveProduct(AdminProduct product) async {
-    final String docId = product.id.trim().isEmpty
-        ? 'p_${DateTime.now().millisecondsSinceEpoch}'
-        : product.id;
-    final AdminProduct toSave = product.copyWith(id: docId);
+  Future<AdminProduct> saveProduct(AdminProduct product) async {
+    // Create: empty id -> use a Firestore auto-generated document id.
+    // Update: existing id -> write back to the same document.
+    final DocumentReference<Map<String, dynamic>> docRef =
+        product.id.trim().isEmpty
+        ? _productsRef.doc()
+        : _productsRef.doc(product.id);
+    final AdminProduct toSave = product.copyWith(id: docRef.id);
     final data = AdminProductModel.fromEntity(toSave).toMap();
-    await _productsRef.doc(docId).set(data, SetOptions(merge: true));
+    await docRef.set(data, SetOptions(merge: true));
+    return toSave;
   }
 
   @override

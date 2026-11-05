@@ -22,7 +22,11 @@ abstract interface class AdminRepository {
   Future<List<AdminProduct>> loadProducts();
 
   /// Saves (creates or updates) [product] in the catalog.
-  Future<void> saveProduct(AdminProduct product);
+  ///
+  /// When [product] has an empty id a new document is created with a freshly
+  /// generated unique id; otherwise the existing document with that id is
+  /// updated. Returns the saved product carrying its final persisted id.
+  Future<AdminProduct> saveProduct(AdminProduct product);
 
   /// Deletes a product by [productId].
   Future<void> deleteProduct(String productId);

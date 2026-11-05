@@ -269,15 +269,20 @@ class MockAdminRepository implements AdminRepository {
   }
 
   @override
-  Future<void> saveProduct(AdminProduct product) async {
+  Future<AdminProduct> saveProduct(AdminProduct product) async {
     await Future<void>.delayed(_latency);
-    final int i = _products.indexWhere((p) => p.id == product.id);
-    final AdminProductModel model = AdminProductModel.fromEntity(product);
+    final String id = product.id.trim().isEmpty
+        ? 'p_${DateTime.now().millisecondsSinceEpoch}'
+        : product.id;
+    final AdminProduct toSave = product.copyWith(id: id);
+    final int i = _products.indexWhere((p) => p.id == id);
+    final AdminProductModel model = AdminProductModel.fromEntity(toSave);
     if (i >= 0) {
       _products[i] = model;
     } else {
       _products.add(model);
     }
+    return toSave;
   }
 
   @override
