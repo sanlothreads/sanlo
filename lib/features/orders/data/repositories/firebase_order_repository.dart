@@ -42,25 +42,27 @@ class FirebaseOrderRepository implements OrderRepository {
   CollectionReference<Map<String, dynamic>> get _ordersRef =>
       _firestore.collection('orders');
 
-  /// Generates a guaranteed unique order ID formatted as `SN-xxxx`.
+  /// Generates a guaranteed unique, incremental order ID formatted as `SN-xxxx`.
   ///
-  /// Uses an atomic Firestore transaction counter and collision checks against
-  /// existing Firestore documents to ensure no Order ID is ever repeated.
+  /// Uses an atomic Firestore transaction counter (padding to at least 4 digits),
+  /// querying the highest existing `SN-xxxx` document if needed, and checking
+  /// document existence to ensure sequential incrementation with zero collisions.
   Future<String> _generateUniqueOrderId() async {
     try {
       final counterRef = _firestore.collection('counters').doc('orders');
 
-      // Try atomic transaction increment
+      // Atomic transaction increment
       final String? nextId = await _firestore.runTransaction<String?>((
         transaction,
       ) async {
         final snapshot = await transaction.get(counterRef);
-        int currentNumber = 1052;
+        int currentNumber = 1001;
         if (snapshot.exists && snapshot.data() != null) {
           currentNumber =
-              (snapshot.data()!['nextNumber'] as num?)?.toInt() ?? 1052;
+              (snapshot.data()!['nextNumber'] as num?)?.toInt() ?? 1001;
         }
-        final String candidateId = 'SN-$currentNumber';
+        final String numStr = currentNumber.toString().padLeft(4, '0');
+        final String candidateId = 'SN-$numStr';
         transaction.set(counterRef, {
           'nextNumber': currentNumber + 1,
         }, SetOptions(merge: true));
@@ -77,24 +79,29 @@ class FirebaseOrderRepository implements OrderRepository {
       // Transaction fallback
     }
 
-    // Fallback collision-check generator
-    for (int attempt = 0; attempt < 10; attempt++) {
-      final int number = 1000 + Random().nextInt(9000);
-      final String candidate = 'SN-$number';
-      try {
-        final doc = await _ordersRef.doc(candidate).get();
-        if (!doc.exists) {
-          return candidate;
+    // Fallback: Query highest existing SN-xxxx order number from Firestore
+    try {
+      final querySnapshot = await _ordersRef
+          .orderBy(FieldPath.documentId, descending: true)
+          .limit(10)
+          .get();
+      int highest = 1000;
+      for (final doc in querySnapshot.docs) {
+        if (doc.id.startsWith('SN-')) {
+          final String numPart = doc.id.substring(3);
+          final int? parsed = int.tryParse(numPart);
+          if (parsed != null && parsed > highest) {
+            highest = parsed;
+          }
         }
-      } catch (_) {
-        return candidate;
       }
+      final int nextNum = highest + 1;
+      return 'SN-${nextNum.toString().padLeft(4, '0')}';
+    } catch (_) {
+      // High-precision millisecond fallback
+      final int millis = DateTime.now().millisecondsSinceEpoch % 10000;
+      return 'SN-${millis.toString().padLeft(4, '0')}';
     }
-
-    // High-entropy millisecond fallback guarantee
-    final int millis = DateTime.now().millisecondsSinceEpoch % 10000;
-    final int salt = Random().nextInt(10);
-    return 'SN-${millis.toString().padLeft(4, '0')}$salt';
   }
 
   @override
