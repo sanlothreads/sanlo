@@ -170,12 +170,16 @@ class _OrderSummary extends StatelessWidget {
         ? '₹${order.amountAtShopInr}'
         : 'At the shop';
 
+    final String formattedId = orderId.startsWith('#')
+        ? orderId
+        : (orderId.startsWith('SN-') ? '#$orderId' : '#SN-$orderId');
+
     return SectionCard(
       backgroundColor: AppColors.surfaceMuted,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          _SummaryRow(label: 'Order ID', value: '#$orderId'),
+          _SummaryRow(label: 'Order ID', value: formattedId),
           const SizedBox(height: AppSpacing.smd),
           _SummaryRow(label: 'Item', value: item),
           const SizedBox(height: AppSpacing.smd),

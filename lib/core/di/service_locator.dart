@@ -1,15 +1,12 @@
 import '../../features/admin/data/repositories/firebase_admin_access_repository.dart';
 import '../../features/admin/data/repositories/firebase_admin_repository.dart';
-import '../../features/admin/data/repositories/mock_admin_repository.dart';
 import '../../features/admin/domain/repositories/admin_access_repository.dart';
 import '../../features/admin/domain/repositories/admin_repository.dart';
 import '../../features/auth/data/repositories/firebase_auth_repository.dart';
-import '../../features/auth/data/repositories/mock_auth_repository.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/catalog/data/repositories/firebase_product_repository.dart';
-import '../../features/catalog/data/repositories/mock_product_repository.dart';
 import '../../features/catalog/domain/repositories/product_repository.dart';
-import '../../features/orders/data/repositories/mock_order_repository.dart';
+import '../../features/orders/data/repositories/firebase_order_repository.dart';
 import '../../features/orders/domain/repositories/order_repository.dart';
 import '../../features/profile/data/repositories/mock_profile_repository.dart';
 import '../../features/profile/domain/repositories/profile_repository.dart';
@@ -22,12 +19,13 @@ class ServiceLocator {
     AdminAccessRepository? adminAccessRepository,
     ProductRepository? productRepository,
     AdminRepository? adminRepository,
+    OrderRepository? orderRepository,
   }) : authRepository = authRepository ?? FirebaseAuthRepository(),
        adminAccessRepository =
            adminAccessRepository ?? FirebaseAdminAccessRepository(),
        productRepository = productRepository ?? FirebaseProductRepository(),
        adminRepository = adminRepository ?? FirebaseAdminRepository(),
-       orderRepository = MockOrderRepository(),
+       orderRepository = orderRepository ?? FirebaseOrderRepository(),
        profileRepository = MockProfileRepository();
 
   /// Authentication: OTP sign-in, account creation, guest sessions.

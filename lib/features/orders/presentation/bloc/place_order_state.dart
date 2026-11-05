@@ -21,6 +21,7 @@ class PlaceOrderState extends Equatable {
   const PlaceOrderState({
     this.step = OrderStep.details,
     this.draft,
+    this.draftId,
     this.placedOrder,
     this.errorMessage,
   });
@@ -30,6 +31,9 @@ class PlaceOrderState extends Equatable {
 
   /// The in-progress draft (null before the flow starts).
   final OrderDraft? draft;
+
+  /// The Firestore document ID for this order draft.
+  final String? draftId;
 
   /// The created order, set once placing succeeds.
   final Order? placedOrder;
@@ -46,12 +50,14 @@ class PlaceOrderState extends Equatable {
   PlaceOrderState copyWith({
     OrderStep? step,
     Object? draft = _unset,
+    Object? draftId = _unset,
     Object? placedOrder = _unset,
     Object? errorMessage = _unset,
   }) {
     return PlaceOrderState(
       step: step ?? this.step,
       draft: identical(draft, _unset) ? this.draft : draft as OrderDraft?,
+      draftId: identical(draftId, _unset) ? this.draftId : draftId as String?,
       placedOrder: identical(placedOrder, _unset)
           ? this.placedOrder
           : placedOrder as Order?,
@@ -62,5 +68,5 @@ class PlaceOrderState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [step, draft, placedOrder, errorMessage];
+  List<Object?> get props => [step, draft, draftId, placedOrder, errorMessage];
 }

@@ -5,7 +5,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/date_format.dart';
 import '../../../../core/widgets/section_card.dart';
-import '../../../../core/widgets/status_badge.dart';
 import '../../domain/entities/admin_customer.dart';
 import '../cubit/admin_customers_cubit.dart';
 import '../cubit/admin_customers_state.dart';
@@ -160,7 +159,8 @@ class AdminCustomersScreen extends StatelessWidget {
                     fontSize: 12,
                   ),
                 ),
-                if (c.registeredDate != null || c.lastLogin != null) ...<Widget>[
+                if (c.registeredDate != null ||
+                    c.lastLogin != null) ...<Widget>[
                   const SizedBox(height: 2),
                   Text(
                     'Reg: ${c.registeredDate ?? '—'} · Login: ${c.lastLogin ?? '—'}',

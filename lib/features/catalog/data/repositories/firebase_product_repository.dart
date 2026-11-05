@@ -5,9 +5,8 @@ import '../../domain/entities/product.dart';
 import '../../domain/entities/style_detail.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../models/category_model.dart';
-import '../models/product_model.dart';
-import '../models/style_detail_model.dart';
 import 'mock_product_repository.dart';
+
 ///
 /// Reads saved products directly from the `products` collection in Firestore.
 class FirebaseProductRepository implements ProductRepository {

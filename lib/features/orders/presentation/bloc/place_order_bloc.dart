@@ -25,43 +25,68 @@ class PlaceOrderBloc extends Bloc<PlaceOrderEvent, PlaceOrderState> {
 
   final OrderRepository _orderRepository;
 
-  void _onOrderStarted(OrderStarted event, Emitter<PlaceOrderState> emit) {
+  Future<void> _onOrderStarted(
+    OrderStarted event,
+    Emitter<PlaceOrderState> emit,
+  ) async {
     emit(
       PlaceOrderState(
         step: OrderStep.details,
         draft: OrderDraft(product: event.product),
       ),
     );
+    try {
+      final String draftId = await _orderRepository.createDraftOrder(event.product);
+      emit(state.copyWith(draftId: draftId));
+    } catch (_) {}
   }
 
-  void _onCustomerDetailsSubmitted(
+  Future<void> _onCustomerDetailsSubmitted(
     CustomerDetailsSubmitted event,
     Emitter<PlaceOrderState> emit,
-  ) {
+  ) async {
     final draft = state.draft;
     if (draft == null) return;
+    final updatedDraft = draft.copyWith(details: event.details);
     emit(
       state.copyWith(
-        draft: draft.copyWith(details: event.details),
+        draft: updatedDraft,
         step: OrderStep.measurements,
       ),
     );
+    final String? draftId = state.draftId;
+    if (draftId != null && draftId.isNotEmpty) {
+      try {
+        await _orderRepository.updateDraftDetails(
+          draftId: draftId,
+          details: event.details,
+        );
+      } catch (_) {}
+    }
   }
 
-  void _onMeasurementsSubmitted(
+  Future<void> _onMeasurementsSubmitted(
     MeasurementsSubmitted event,
     Emitter<PlaceOrderState> emit,
-  ) {
+  ) async {
     final draft = state.draft;
     if (draft == null) return;
-    // "Not sure" (knowsMeasurements == false) with null fields is still valid
-    // and advances the flow to review.
+    final updatedDraft = draft.copyWith(measurements: event.measurements);
     emit(
       state.copyWith(
-        draft: draft.copyWith(measurements: event.measurements),
+        draft: updatedDraft,
         step: OrderStep.review,
       ),
     );
+    final String? draftId = state.draftId;
+    if (draftId != null && draftId.isNotEmpty) {
+      try {
+        await _orderRepository.updateDraftMeasurements(
+          draftId: draftId,
+          measurements: event.measurements,
+        );
+      } catch (_) {}
+    }
   }
 
   void _onEditDetailsRequested(
@@ -92,7 +117,10 @@ class PlaceOrderBloc extends Bloc<PlaceOrderEvent, PlaceOrderState> {
 
     emit(state.copyWith(step: OrderStep.placing));
     try {
-      final Order order = await _orderRepository.placeOrder(draft);
+      final Order order = await _orderRepository.placeOrder(
+        draft,
+        draftId: state.draftId,
+      );
       emit(
         state.copyWith(
           step: OrderStep.placed,
