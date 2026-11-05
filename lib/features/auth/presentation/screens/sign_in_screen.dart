@@ -10,6 +10,7 @@ import '../../../../core/widgets/image_placeholder.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/responsive_center.dart';
 import '../../../admin/domain/repositories/admin_access_repository.dart';
+import '../../domain/entities/auth_user.dart';
 import '../bloc/auth_bloc.dart';
 
 /// The Sign in / Welcome screen.
@@ -76,11 +77,23 @@ class _SignInScreenState extends State<SignInScreen> {
   /// *first*: an admin lands on the Admin Dashboard regardless of whether they
   /// have a customer profile. Otherwise fall back to the normal flow — Home for
   /// a registered user, or Sign up when the number has no profile yet.
+  ///
+  /// Guests skip the database admin lookup and route immediately to Home.
   Future<void> _handleAuthed(AuthState state) async {
     if (_routing) return;
     _routing = true;
 
-    final String? mobile = state.user?.mobile;
+    final AuthUser? user = state.user;
+    if (user == null ||
+        user.isGuest ||
+        user.mobile == null ||
+        user.mobile!.trim().isEmpty) {
+      if (!mounted) return;
+      context.goNamed(Routes.homeName);
+      return;
+    }
+
+    final String mobile = user.mobile!;
     final AdminAccessRepository adminAccess = context
         .read<AdminAccessRepository>();
     final bool isAdmin = await adminAccess.isAdmin(mobile);

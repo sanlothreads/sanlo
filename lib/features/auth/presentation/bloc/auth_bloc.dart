@@ -181,7 +181,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     AuthUser user;
     try {
-      user = await _authRepository.continueAsGuest();
+      user = await _authRepository.continueAsGuest().timeout(
+        const Duration(milliseconds: 500),
+        onTimeout: () => const AuthUser.guest(),
+      );
     } catch (_) {
       user = const AuthUser.guest();
     }
