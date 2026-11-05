@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:sanlo/core/theme/app_colors.dart';
 import 'package:sanlo/core/theme/app_spacing.dart';
 import 'package:sanlo/core/widgets/image_placeholder.dart';
@@ -94,14 +93,26 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image area — pastel tinted placeholder filling available top space.
+            // Image area — network image if available, else pastel tinted placeholder.
             Expanded(
-              child: ImagePlaceholder(
-                width: double.infinity,
-                backgroundColor: _cardBackground(),
-                foregroundColor: _iconAccent(),
-                borderRadius: BorderRadius.zero,
-              ),
+              child: product.imageUrls.isNotEmpty
+                  ? Image.network(
+                      product.imageUrls.first,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (ctx, err, stack) => ImagePlaceholder(
+                        width: double.infinity,
+                        backgroundColor: _cardBackground(),
+                        foregroundColor: _iconAccent(),
+                        borderRadius: BorderRadius.zero,
+                      ),
+                    )
+                  : ImagePlaceholder(
+                      width: double.infinity,
+                      backgroundColor: _cardBackground(),
+                      foregroundColor: _iconAccent(),
+                      borderRadius: BorderRadius.zero,
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.smd),

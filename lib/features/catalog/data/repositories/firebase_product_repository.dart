@@ -8,8 +8,6 @@ import '../models/category_model.dart';
 import '../models/product_model.dart';
 import '../models/style_detail_model.dart';
 import 'mock_product_repository.dart';
-
-/// Firebase Firestore implementation of [ProductRepository] for customer catalog.
 ///
 /// Reads saved products directly from the `products` collection in Firestore.
 class FirebaseProductRepository implements ProductRepository {
@@ -66,9 +64,16 @@ class FirebaseProductRepository implements ProductRepository {
         final rawUrls =
             map['imageUrls'] as List<dynamic>? ??
             map['images'] as List<dynamic>?;
-        final int photoCount = rawUrls != null && rawUrls.isNotEmpty
-            ? rawUrls.length
+        final List<String> imageUrls = rawUrls != null
+            ? rawUrls
+                  .map((e) => e.toString())
+                  .where((s) => s.trim().isNotEmpty)
+                  .toList()
+            : <String>[];
+        final int photoCount = imageUrls.isNotEmpty
+            ? imageUrls.length
             : ((map['photoCount'] as num?)?.toInt() ?? 1);
+        final String shortDesc = map['shortDescription'] as String? ?? '';
 
         products.add(
           Product(
@@ -80,6 +85,8 @@ class FirebaseProductRepository implements ProductRepository {
             readyInDays: stitchDays,
             priceInr: priceInr,
             imageCount: photoCount,
+            shortDescription: shortDesc,
+            imageUrls: imageUrls,
           ),
         );
       }
@@ -106,9 +113,16 @@ class FirebaseProductRepository implements ProductRepository {
       final double rating = (map['rating'] as num?)?.toDouble() ?? 0.0;
       final rawUrls =
           map['imageUrls'] as List<dynamic>? ?? map['images'] as List<dynamic>?;
-      final int photoCount = rawUrls != null && rawUrls.isNotEmpty
-          ? rawUrls.length
+      final List<String> imageUrls = rawUrls != null
+          ? rawUrls
+                .map((e) => e.toString())
+                .where((s) => s.trim().isNotEmpty)
+                .toList()
+          : <String>[];
+      final int photoCount = imageUrls.isNotEmpty
+          ? imageUrls.length
           : ((map['photoCount'] as num?)?.toInt() ?? 1);
+
       final String shortDesc = map['shortDescription'] as String? ?? '';
       final String longDesc =
           map['longDescription'] as String? ??
@@ -116,15 +130,17 @@ class FirebaseProductRepository implements ProductRepository {
           '';
       final String description = longDesc.isNotEmpty ? longDesc : shortDesc;
 
-      final productModel = ProductModel(
+      final product = Product(
         id: doc.id,
-        category: category,
+        category: _parseCategoryKind(category),
         name: name,
         typeLabel: _deriveTypeLabel(name),
         rating: rating,
         readyInDays: stitchDays,
         priceInr: priceInr,
         imageCount: photoCount,
+        shortDescription: shortDesc,
+        imageUrls: imageUrls,
       );
 
       final aboutText = description.isNotEmpty
@@ -144,15 +160,28 @@ class FirebaseProductRepository implements ProductRepository {
               "Measurement at shop if you're not sure",
             ];
 
-      return StyleDetailModel(
-        product: productModel,
+      final rawHighlights = map['highlights'] as List<dynamic>?;
+      final List<String> highlightsList = rawHighlights != null
+          ? rawHighlights
+                .map((e) => e.toString())
+                .where((s) => s.trim().isNotEmpty)
+                .toList()
+          : <String>[];
+
+      final List<String> variantLabels = imageUrls.isNotEmpty
+          ? List.generate(imageUrls.length, (i) => 'Photo ${i + 1}')
+          : const ['Color 1', 'Color 2', 'Color 3', 'Color 4'];
+
+      return StyleDetail(
+        product: product,
         categoryLabel: _categoryLabel(category),
         aboutText: aboutText,
         included: includedList,
-        variantLabels: const ['Color 1', 'Color 2', 'Color 3', 'Color 4'],
+        highlights: highlightsList,
+        variantLabels: variantLabels,
         stitchingChargeInr: priceInr,
         paymentLabel: 'At shop',
-      ).toEntity();
+      );
     } catch (_) {
       return _mockFallback.getProductDetail(productId);
     }

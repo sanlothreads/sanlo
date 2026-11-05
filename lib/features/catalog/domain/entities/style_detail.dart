@@ -13,6 +13,7 @@ class StyleDetail extends Equatable {
     required this.variantLabels,
     required this.stitchingChargeInr,
     required this.paymentLabel,
+    this.highlights = const <String>[],
   });
 
   /// The product this detail describes.
@@ -26,6 +27,9 @@ class StyleDetail extends Equatable {
 
   /// Included-items checklist.
   final List<String> included;
+
+  /// Product highlight points.
+  final List<String> highlights;
 
   /// Labels for the selectable variant/color thumbnails.
   final List<String> variantLabels;
@@ -41,6 +45,7 @@ class StyleDetail extends Equatable {
     String? categoryLabel,
     String? aboutText,
     List<String>? included,
+    List<String>? highlights,
     List<String>? variantLabels,
     int? stitchingChargeInr,
     String? paymentLabel,
@@ -50,6 +55,7 @@ class StyleDetail extends Equatable {
       categoryLabel: categoryLabel ?? this.categoryLabel,
       aboutText: aboutText ?? this.aboutText,
       included: included ?? this.included,
+      highlights: highlights ?? this.highlights,
       variantLabels: variantLabels ?? this.variantLabels,
       stitchingChargeInr: stitchingChargeInr ?? this.stitchingChargeInr,
       paymentLabel: paymentLabel ?? this.paymentLabel,
@@ -62,6 +68,7 @@ class StyleDetail extends Equatable {
     categoryLabel,
     aboutText,
     included,
+    highlights,
     variantLabels,
     stitchingChargeInr,
     paymentLabel,
