@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,6 +11,8 @@ import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/responsive_center.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/step_indicator.dart';
+import '../../../auth/domain/entities/auth_user.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../catalog/domain/entities/product.dart';
 import '../../domain/entities/customer_details.dart';
 import '../bloc/place_order_bloc.dart';
@@ -48,17 +51,56 @@ class _OrderDetailsStepScreenState extends State<OrderDetailsStepScreen> {
   @override
   void initState() {
     super.initState();
-    // Prefill from the existing draft details (edit case); otherwise start the
-    // mobile field with the "+91 " prefix per the mockup.
     final CustomerDetails? details = context
         .read<PlaceOrderBloc>()
         .state
         .draft
         ?.details;
-    _fullNameController = TextEditingController(text: details?.fullName ?? '');
-    _mobileController = TextEditingController(text: details?.mobile ?? '+91 ');
-    _emailController = TextEditingController(text: details?.email ?? '');
-    _addressController = TextEditingController(text: details?.address ?? '');
+
+    AuthUser? authUser;
+    try {
+      authUser = context.read<AuthBloc>().state.user;
+    } catch (_) {
+      authUser = null;
+    }
+
+    // Prefill full name from draft or logged-in user profile
+    String initialFullName = details?.fullName ?? '';
+    if (initialFullName.isEmpty && authUser != null) {
+      final List<String> nameParts = <String>[
+        if (authUser.firstName?.trim().isNotEmpty == true)
+          authUser.firstName!.trim(),
+        if (authUser.lastName?.trim().isNotEmpty == true)
+          authUser.lastName!.trim(),
+      ];
+      initialFullName = nameParts.join(' ');
+    }
+    _fullNameController = TextEditingController(text: initialFullName);
+
+    // Prefill mobile number from draft or logged-in user profile
+    String initialMobile = '';
+    final String rawMobile =
+        details?.mobile ??
+        ((authUser != null && !authUser.isGuest) ? authUser.mobile : null) ??
+        '';
+    if (rawMobile.isNotEmpty) {
+      initialMobile = Validators.normalizeMobile(rawMobile);
+    }
+    _mobileController = TextEditingController(text: initialMobile);
+
+    // Prefill email from draft or logged-in user profile
+    final String initialEmail =
+        details?.email ??
+        ((authUser != null && !authUser.isGuest) ? authUser.email : null) ??
+        '';
+    _emailController = TextEditingController(text: initialEmail);
+
+    // Prefill address from draft or logged-in user profile
+    final String initialAddress =
+        details?.address ??
+        ((authUser != null && !authUser.isGuest) ? authUser.address : null) ??
+        '';
+    _addressController = TextEditingController(text: initialAddress);
   }
 
   @override
@@ -76,12 +118,13 @@ class _OrderDetailsStepScreenState extends State<OrderDetailsStepScreen> {
 
     final String email = _emailController.text.trim();
     final String address = _addressController.text.trim();
+    final String mobileDigits = _mobileController.text.trim();
 
     context.read<PlaceOrderBloc>().add(
       CustomerDetailsSubmitted(
         details: CustomerDetails(
           fullName: _fullNameController.text.trim(),
-          mobile: _mobileController.text.trim(),
+          mobile: '+91 $mobileDigits',
           email: email.isEmpty ? null : email,
           address: address.isEmpty ? null : address,
         ),
@@ -96,7 +139,15 @@ class _OrderDetailsStepScreenState extends State<OrderDetailsStepScreen> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        leading: const BackButton(),
+        leading: BackButton(
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.goNamed('home');
+            }
+          },
+        ),
         title: const Text('Place order'),
       ),
       body: SafeArea(
@@ -157,16 +208,7 @@ class _OrderDetailsStepScreenState extends State<OrderDetailsStepScreen> {
                           const SizedBox(height: AppSpacing.md),
                           _FieldLabel('Mobile number'),
                           const SizedBox(height: AppSpacing.sm),
-                          TextFormField(
-                            controller: _mobileController,
-                            keyboardType: TextInputType.phone,
-                            textInputAction: TextInputAction.next,
-                            decoration: const InputDecoration(
-                              hintText: '+91 98765 43210',
-                            ),
-                            validator: (String? value) =>
-                                Validators.mobileError(value),
-                          ),
+                          _buildMobileRow(),
                           const SizedBox(height: AppSpacing.md),
                           _FieldLabel('Email (optional)'),
                           const SizedBox(height: AppSpacing.sm),
@@ -206,6 +248,52 @@ class _OrderDetailsStepScreenState extends State<OrderDetailsStepScreen> {
       ),
     );
   }
+
+  Widget _buildMobileRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.smd,
+          ),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceMuted,
+            borderRadius: AppRadius.smAll,
+            border: Border.all(color: AppColors.border),
+          ),
+          child: const Text(
+            '+91',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: TextFormField(
+            controller: _mobileController,
+            keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.next,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(10),
+            ],
+            decoration: const InputDecoration(hintText: '98765 43210'),
+            validator: (String? value) {
+              final String fullMobile = '+91 ${value ?? ''}';
+              return Validators.isValidIndianMobile(fullMobile)
+                  ? null
+                  : 'Enter a valid 10-digit mobile number';
+            },
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// A small bold label rendered above each form field.
@@ -243,10 +331,29 @@ class _ProductSummary extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          const ImagePlaceholder(
-            width: 56,
-            height: 56,
-            backgroundColor: AppColors.surface,
+          ClipRRect(
+            borderRadius: AppRadius.smAll,
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: product.imageUrls.isNotEmpty
+                  ? Image.network(
+                      product.imageUrls.first,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (ctx, err, stack) => const ImagePlaceholder(
+                        width: 56,
+                        height: 56,
+                        backgroundColor: AppColors.surface,
+                      ),
+                    )
+                  : const ImagePlaceholder(
+                      width: 56,
+                      height: 56,
+                      backgroundColor: AppColors.surface,
+                    ),
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
