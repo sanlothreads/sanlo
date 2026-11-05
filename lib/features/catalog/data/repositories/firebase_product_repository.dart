@@ -109,7 +109,12 @@ class FirebaseProductRepository implements ProductRepository {
       final int photoCount = rawUrls != null && rawUrls.isNotEmpty
           ? rawUrls.length
           : ((map['photoCount'] as num?)?.toInt() ?? 1);
-      final String description = map['description'] as String? ?? '';
+      final String shortDesc = map['shortDescription'] as String? ?? '';
+      final String longDesc =
+          map['longDescription'] as String? ??
+          map['description'] as String? ??
+          '';
+      final String description = longDesc.isNotEmpty ? longDesc : shortDesc;
 
       final productModel = ProductModel(
         id: doc.id,
@@ -126,15 +131,24 @@ class FirebaseProductRepository implements ProductRepository {
           ? description
           : 'A ${name.toLowerCase()} stitched to your measurements by our tailors. Ready in about $stitchDays days.';
 
+      final rawIncluded = map['included'] as List<dynamic>?;
+      final List<String> includedList =
+          rawIncluded != null && rawIncluded.isNotEmpty
+          ? rawIncluded
+                .map((e) => e.toString())
+                .where((s) => s.trim().isNotEmpty)
+                .toList()
+          : const [
+              'Lining and finishing',
+              'One free alteration after trial',
+              "Measurement at shop if you're not sure",
+            ];
+
       return StyleDetailModel(
         product: productModel,
         categoryLabel: _categoryLabel(category),
         aboutText: aboutText,
-        included: const [
-          'Lining and finishing',
-          'One free alteration after trial',
-          "Measurement at shop if you're not sure",
-        ],
+        included: includedList,
         variantLabels: const ['Color 1', 'Color 2', 'Color 3', 'Color 4'],
         stitchingChargeInr: priceInr,
         paymentLabel: 'At shop',

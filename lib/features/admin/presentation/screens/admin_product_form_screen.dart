@@ -29,8 +29,13 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   late final TextEditingController _price;
   late final TextEditingController _stitchDays;
   late final TextEditingController _rating;
-  late final TextEditingController _description;
+  late final TextEditingController _shortDescription;
+  late final TextEditingController _longDescription;
   final List<TextEditingController> _urlControllers = <TextEditingController>[];
+  final List<TextEditingController> _highlightControllers =
+      <TextEditingController>[];
+  final List<TextEditingController> _includedControllers =
+      <TextEditingController>[];
   late CategoryKind _category;
   late ProductVisibility _visibility;
   bool _isSaving = false;
@@ -47,7 +52,12 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       text: p != null ? '${p.stitchDays}' : '',
     );
     _rating = TextEditingController(text: p != null ? '${p.rating}' : '');
-    _description = TextEditingController(text: p?.description ?? '');
+    _shortDescription = TextEditingController(text: p?.shortDescription ?? '');
+    _longDescription = TextEditingController(
+      text: p != null
+          ? (p.longDescription.isNotEmpty ? p.longDescription : p.description)
+          : '',
+    );
     _category = p?.category ?? CategoryKind.women;
     _visibility = p?.visibility ?? ProductVisibility.live;
 
@@ -58,6 +68,22 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
     } else {
       _urlControllers.add(TextEditingController());
     }
+
+    if (p != null && p.highlights.isNotEmpty) {
+      for (final String h in p.highlights) {
+        _highlightControllers.add(TextEditingController(text: h));
+      }
+    } else {
+      _highlightControllers.add(TextEditingController());
+    }
+
+    if (p != null && p.included.isNotEmpty) {
+      for (final String inc in p.included) {
+        _includedControllers.add(TextEditingController(text: inc));
+      }
+    } else {
+      _includedControllers.add(TextEditingController());
+    }
   }
 
   @override
@@ -66,8 +92,15 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
     _price.dispose();
     _stitchDays.dispose();
     _rating.dispose();
-    _description.dispose();
+    _shortDescription.dispose();
+    _longDescription.dispose();
     for (final TextEditingController controller in _urlControllers) {
+      controller.dispose();
+    }
+    for (final TextEditingController controller in _highlightControllers) {
+      controller.dispose();
+    }
+    for (final TextEditingController controller in _includedControllers) {
       controller.dispose();
     }
     super.dispose();
@@ -84,6 +117,38 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   void _removeUrlField(int index) {
     if (_urlControllers.length > 1) {
       final TextEditingController controller = _urlControllers.removeAt(index);
+      controller.dispose();
+      setState(() {});
+    }
+  }
+
+  void _addHighlightField() {
+    setState(() {
+      _highlightControllers.add(TextEditingController());
+    });
+  }
+
+  void _removeHighlightField(int index) {
+    if (_highlightControllers.length > 1) {
+      final TextEditingController controller = _highlightControllers.removeAt(
+        index,
+      );
+      controller.dispose();
+      setState(() {});
+    }
+  }
+
+  void _addIncludedField() {
+    setState(() {
+      _includedControllers.add(TextEditingController());
+    });
+  }
+
+  void _removeIncludedField(int index) {
+    if (_includedControllers.length > 1) {
+      final TextEditingController controller = _includedControllers.removeAt(
+        index,
+      );
       controller.dispose();
       setState(() {});
     }
@@ -111,6 +176,19 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       return;
     }
 
+    final List<String> highlights = _highlightControllers
+        .map((c) => c.text.trim())
+        .where((h) => h.isNotEmpty)
+        .toList();
+
+    final List<String> included = _includedControllers
+        .map((c) => c.text.trim())
+        .where((inc) => inc.isNotEmpty)
+        .toList();
+
+    final String sDesc = _shortDescription.text.trim();
+    final String lDesc = _longDescription.text.trim();
+
     setState(() => _isSaving = true);
 
     final AdminProduct product = AdminProduct(
@@ -122,8 +200,12 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       rating: double.tryParse(_rating.text.trim()) ?? 0,
       photoCount: urls.length,
       visibility: _visibility,
-      description: _description.text.trim(),
+      description: lDesc.isNotEmpty ? lDesc : sDesc,
+      shortDescription: sDesc,
+      longDescription: lDesc,
       imageUrls: urls,
+      highlights: highlights,
+      included: included,
     );
 
     await context.read<AdminProductsCubit>().saveProduct(product);
@@ -138,7 +220,9 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete product'),
-        content: Text('Are you sure you want to delete "${widget.product!.name}"?'),
+        content: Text(
+          'Are you sure you want to delete "${widget.product!.name}"?',
+        ),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -211,13 +295,20 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                       decimal: true,
                     ),
                   ),
-                  _imageUrlsSection(),
-                  _visibilityField(),
                   _field(
-                    label: 'Description',
-                    controller: _description,
-                    maxLines: 3,
+                    label: 'Short description',
+                    controller: _shortDescription,
+                    maxLines: 1,
                   ),
+                  _field(
+                    label: 'Long description',
+                    controller: _longDescription,
+                    maxLines: 4,
+                  ),
+                  _imageUrlsSection(),
+                  _highlightsSection(),
+                  _includedSection(),
+                  _visibilityField(),
                   const SizedBox(height: AppSpacing.lg),
                   PrimaryButton(
                     label: _isEditing ? 'Save changes' : 'Add product',
@@ -328,6 +419,119 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
               label: const Text('Add image URL'),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _highlightsSection() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const Text(
+            'Product Highlights / Key Points',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          for (int i = 0; i < _highlightControllers.length; i++) ...<Widget>[
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextFormField(
+                      controller: _highlightControllers[i],
+                      decoration: InputDecoration(
+                        hintText: 'Highlight point ${i + 1} (e.g. 100% Cotton)',
+                        isDense: true,
+                      ),
+                    ),
+                  ),
+                  if (_highlightControllers.length > 1) ...<Widget>[
+                    const SizedBox(width: AppSpacing.xs),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.remove_circle_outline,
+                        color: AppColors.error,
+                        size: 20,
+                      ),
+                      onPressed: () => _removeHighlightField(i),
+                      tooltip: 'Remove highlight',
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.xs),
+          OutlinedButton.icon(
+            onPressed: _addHighlightField,
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add highlight point'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _includedSection() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const Text(
+            'Included Items ("What\'s Included")',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          for (int i = 0; i < _includedControllers.length; i++) ...<Widget>[
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextFormField(
+                      controller: _includedControllers[i],
+                      decoration: InputDecoration(
+                        hintText:
+                            'Included item ${i + 1} (e.g. Lining and finishing)',
+                        isDense: true,
+                      ),
+                    ),
+                  ),
+                  if (_includedControllers.length > 1) ...<Widget>[
+                    const SizedBox(width: AppSpacing.xs),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.remove_circle_outline,
+                        color: AppColors.error,
+                        size: 20,
+                      ),
+                      onPressed: () => _removeIncludedField(i),
+                      tooltip: 'Remove included item',
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.xs),
+          OutlinedButton.icon(
+            onPressed: _addIncludedField,
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Add included item'),
+          ),
         ],
       ),
     );
