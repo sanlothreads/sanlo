@@ -46,4 +46,24 @@ abstract final class Routes {
 
   static const String orderTrackingPath = '/order/tracking/:id';
   static const String orderTrackingName = 'orderTracking';
+
+  // --- Admin shell tabs -----------------------------------------------------
+  static const String adminDashboardPath = '/admin/dashboard';
+  static const String adminDashboardName = 'adminDashboard';
+
+  static const String adminOrdersPath = '/admin/orders';
+  static const String adminOrdersName = 'adminOrders';
+
+  static const String adminProductsPath = '/admin/products';
+  static const String adminProductsName = 'adminProducts';
+
+  static const String adminCustomersPath = '/admin/customers';
+  static const String adminCustomersName = 'adminCustomers';
+
+  // --- Admin product form (add / edit) --------------------------------------
+  static const String adminProductNewPath = '/admin/products/new';
+  static const String adminProductNewName = 'adminProductNew';
+
+  static const String adminProductEditPath = '/admin/products/:id/edit';
+  static const String adminProductEditName = 'adminProductEdit';
 }

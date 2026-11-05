@@ -113,6 +113,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final session = state.session;
     if (session == null) return; // cannot verify before sending
 
+    if (!Validators.isValidOtp(event.code)) {
+      emit(
+        state.copyWith(
+          phase: AuthPhase.error,
+          errorMessage: 'Enter a valid 6-digit OTP code',
+        ),
+      );
+      return;
+    }
+
     emit(state.copyWith(phase: AuthPhase.verifying, clearError: true));
     try {
       final user = await _authRepository.verifyOtp(

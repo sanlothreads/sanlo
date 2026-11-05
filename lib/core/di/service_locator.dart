@@ -1,4 +1,8 @@
 import '../../features/auth/data/repositories/firebase_auth_repository.dart';
+import '../../features/admin/data/repositories/firebase_admin_access_repository.dart';
+import '../../features/admin/data/repositories/mock_admin_repository.dart';
+import '../../features/admin/domain/repositories/admin_access_repository.dart';
+import '../../features/admin/domain/repositories/admin_repository.dart';
 import '../../features/auth/data/repositories/mock_auth_repository.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/catalog/data/repositories/mock_product_repository.dart';
@@ -32,11 +36,16 @@ class ServiceLocator {
   /// pass [authRepository] (e.g. a [MockAuthRepository]) to override it, which
   /// is how widget tests run without a live Firebase. The catalog, orders, and
   /// profile repositories remain in-memory mocks for now.
-  ServiceLocator({AuthRepository? authRepository})
-    : authRepository = authRepository ?? FirebaseAuthRepository(),
+  ServiceLocator({
+    AuthRepository? authRepository,
+    AdminAccessRepository? adminAccessRepository,
+  }) : authRepository = authRepository ?? FirebaseAuthRepository(),
+       adminAccessRepository =
+           adminAccessRepository ?? FirebaseAdminAccessRepository(),
       productRepository = MockProductRepository(),
       orderRepository = MockOrderRepository(),
-      profileRepository = MockProfileRepository();
+      profileRepository = MockProfileRepository(),
+      adminRepository = MockAdminRepository();
 
   /// Authentication: OTP sign-in, account creation, guest sessions.
   final AuthRepository authRepository;
@@ -50,4 +59,11 @@ class ServiceLocator {
 
   /// Profile: the signed-in customer's details and order stats.
   final ProfileRepository profileRepository;
+
+  /// Admin: dashboard summary, orders, products, and customers (mock-seeded).
+  final AdminRepository adminRepository;
+
+  /// Admin access gate: checks a signed-in mobile against the Firebase
+  /// `admin` node. Firebase-backed by default; override for tests.
+  final AdminAccessRepository adminAccessRepository;
 }

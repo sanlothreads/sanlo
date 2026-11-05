@@ -5,6 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/domain/entities/auth_user.dart';
 import '../../features/auth/presentation/screens/sign_in_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
+import '../../features/admin/domain/entities/admin_product.dart';
+import '../../features/admin/presentation/screens/admin_customers_screen.dart';
+import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
+import '../../features/admin/presentation/screens/admin_orders_screen.dart';
+import '../../features/admin/presentation/screens/admin_product_form_screen.dart';
+import '../../features/admin/presentation/screens/admin_products_screen.dart';
+import '../../features/admin/presentation/screens/admin_shell_host.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/catalog/domain/entities/product.dart';
 import '../../features/catalog/presentation/screens/home_screen.dart';
@@ -94,6 +101,92 @@ GoRouter _buildRouter() {
                 name: Routes.profileName,
                 builder: (BuildContext context, GoRouterState state) =>
                     const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // --- Admin 4-tab shell --------------------------------------------------
+      StatefulShellRoute.indexedStack(
+        builder:
+            (
+              BuildContext context,
+              GoRouterState state,
+              StatefulNavigationShell navigationShell,
+            ) => AdminShellHost(navigationShell: navigationShell),
+        branches: <StatefulShellBranch>[
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.adminDashboardPath,
+                name: Routes.adminDashboardName,
+                builder: (BuildContext context, GoRouterState state) =>
+                    AdminDashboardScreen(
+                      onAddProduct: () =>
+                          context.goNamed(Routes.adminProductNewName),
+                      onViewAllOrders: () =>
+                          context.goNamed(Routes.adminOrdersName),
+                    ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.adminOrdersPath,
+                name: Routes.adminOrdersName,
+                builder: (BuildContext context, GoRouterState state) =>
+                    const AdminOrdersScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.adminProductsPath,
+                name: Routes.adminProductsName,
+                builder: (BuildContext context, GoRouterState state) =>
+                    AdminProductsScreen(
+                      onAddProduct: () =>
+                          context.pushNamed(Routes.adminProductNewName),
+                      onEditProduct: (AdminProduct p) => context.pushNamed(
+                        Routes.adminProductEditName,
+                        pathParameters: <String, String>{'id': p.id},
+                        extra: p,
+                      ),
+                    ),
+                routes: <RouteBase>[
+                  // Nested under the products branch so the form shares the
+                  // branch's AdminProductsCubit and upserts are reflected.
+                  GoRoute(
+                    path: 'new',
+                    name: Routes.adminProductNewName,
+                    builder: (BuildContext context, GoRouterState state) =>
+                        AdminProductFormScreen(
+                          onDone: () => context.pop(),
+                        ),
+                  ),
+                  GoRoute(
+                    path: ':id/edit',
+                    name: Routes.adminProductEditName,
+                    builder: (BuildContext context, GoRouterState state) =>
+                        AdminProductFormScreen(
+                          product: state.extra as AdminProduct?,
+                          onDone: () => context.pop(),
+                        ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: <RouteBase>[
+              GoRoute(
+                path: Routes.adminCustomersPath,
+                name: Routes.adminCustomersName,
+                builder: (BuildContext context, GoRouterState state) =>
+                    const AdminCustomersScreen(),
               ),
             ],
           ),

@@ -1,0 +1,52 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../domain/entities/admin_product.dart';
+import '../../domain/repositories/admin_repository.dart';
+import 'admin_products_state.dart';
+
+/// Cubit for the admin Products screen.
+///
+/// Loads all products, keeps the search query in state (filtering is derived),
+/// and supports [upsertProduct] to add a new product or replace an existing
+/// one by id.
+class AdminProductsCubit extends Cubit<AdminProductsState> {
+  AdminProductsCubit(this._repository) : super(const AdminProductsState());
+
+  final AdminRepository _repository;
+
+  Future<void> load() async {
+    emit(state.copyWith(status: AdminProductsStatus.loading, error: null));
+    try {
+      final List<AdminProduct> products = await _repository.loadProducts();
+      emit(
+        state.copyWith(
+          status: AdminProductsStatus.loaded,
+          allProducts: products,
+        ),
+      );
+    } catch (_) {
+      emit(
+        state.copyWith(
+          status: AdminProductsStatus.failure,
+          error: 'Could not load products, try again',
+        ),
+      );
+    }
+  }
+
+  /// Updates the search [text].
+  void search(String text) => emit(state.copyWith(query: text));
+
+  /// Adds [product] when its id is new, or replaces the existing product with
+  /// the same id. List length changes by at most one.
+  void upsertProduct(AdminProduct product) {
+    final int i = state.allProducts.indexWhere((p) => p.id == product.id);
+    final List<AdminProduct> updated = List.of(state.allProducts);
+    if (i >= 0) {
+      updated[i] = product;
+    } else {
+      updated.add(product);
+    }
+    emit(state.copyWith(allProducts: updated));
+  }
+}

@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../admin/domain/repositories/admin_access_repository.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 /// The app's launch splash screen.
@@ -42,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     _timer = Timer(SplashScreen._displayDuration, () {
       _delayElapsed = true;
-      _routeOnward();
+      unawaited(_routeOnward());
     });
   }
 
@@ -52,15 +53,26 @@ class _SplashScreenState extends State<SplashScreen> {
   ///
   /// Called both when the timer fires and whenever the [AuthBloc] state
   /// changes, so whichever settles last triggers the navigation.
-  void _routeOnward() {
+  Future<void> _routeOnward() async {
     if (!mounted || _navigated || !_delayElapsed) return;
     final AuthState state = context.read<AuthBloc>().state;
     if (state.phase == AuthPhase.restoring) return; // still resolving
 
     _navigated = true;
-    context.goNamed(
-      state.isAuthenticated ? Routes.homeName : Routes.signInName,
-    );
+
+    if (!state.isAuthenticated) {
+      context.goNamed(Routes.signInName);
+      return;
+    }
+
+    // Signed in: route shop admins to the admin dashboard, everyone else Home.
+    // The admin check reads the Firebase `admin` node; it fails closed, so any
+    // error routes to Home rather than granting admin access.
+    final AdminAccessRepository adminAccess = context
+        .read<AdminAccessRepository>();
+    final bool isAdmin = await adminAccess.isAdmin(state.user?.mobile);
+    if (!mounted) return;
+    context.goNamed(isAdmin ? Routes.adminDashboardName : Routes.homeName);
   }
 
   @override
@@ -74,7 +86,9 @@ class _SplashScreenState extends State<SplashScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listenWhen: (AuthState previous, AuthState current) =>
           previous.phase != current.phase,
-      listener: (BuildContext context, AuthState state) => _routeOnward(),
+      listener: (BuildContext context, AuthState state) {
+        unawaited(_routeOnward());
+      },
       child: Scaffold(
         backgroundColor: AppColors.brandRed,
         body: Center(
