@@ -22,6 +22,7 @@ class AdminProduct extends Equatable {
     required this.photoCount,
     required this.visibility,
     this.description = '',
+    this.imageUrls = const <String>[],
   });
 
   /// Stable identifier, e.g. "p_formal_shirt".
@@ -52,6 +53,9 @@ class AdminProduct extends Equatable {
   /// Optional long description entered on the form.
   final String description;
 
+  /// List of image URLs attached to this product (min 1, max 6).
+  final List<String> imageUrls;
+
   AdminProduct copyWith({
     String? id,
     String? name,
@@ -62,6 +66,7 @@ class AdminProduct extends Equatable {
     int? photoCount,
     ProductVisibility? visibility,
     String? description,
+    List<String>? imageUrls,
   }) {
     return AdminProduct(
       id: id ?? this.id,
@@ -73,6 +78,7 @@ class AdminProduct extends Equatable {
       photoCount: photoCount ?? this.photoCount,
       visibility: visibility ?? this.visibility,
       description: description ?? this.description,
+      imageUrls: imageUrls ?? this.imageUrls,
     );
   }
 
@@ -87,5 +93,6 @@ class AdminProduct extends Equatable {
     photoCount,
     visibility,
     description,
+    imageUrls,
   ];
 }

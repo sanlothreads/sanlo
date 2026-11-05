@@ -63,7 +63,12 @@ class FirebaseProductRepository implements ProductRepository {
         final int priceInr = (map['priceInr'] as num?)?.toInt() ?? 0;
         final int stitchDays = (map['stitchDays'] as num?)?.toInt() ?? 0;
         final double rating = (map['rating'] as num?)?.toDouble() ?? 0.0;
-        final int photoCount = (map['photoCount'] as num?)?.toInt() ?? 1;
+        final rawUrls =
+            map['imageUrls'] as List<dynamic>? ??
+            map['images'] as List<dynamic>?;
+        final int photoCount = rawUrls != null && rawUrls.isNotEmpty
+            ? rawUrls.length
+            : ((map['photoCount'] as num?)?.toInt() ?? 1);
 
         products.add(
           Product(
@@ -99,7 +104,11 @@ class FirebaseProductRepository implements ProductRepository {
       final int priceInr = (map['priceInr'] as num?)?.toInt() ?? 0;
       final int stitchDays = (map['stitchDays'] as num?)?.toInt() ?? 0;
       final double rating = (map['rating'] as num?)?.toDouble() ?? 0.0;
-      final int photoCount = (map['photoCount'] as num?)?.toInt() ?? 1;
+      final rawUrls =
+          map['imageUrls'] as List<dynamic>? ?? map['images'] as List<dynamic>?;
+      final int photoCount = rawUrls != null && rawUrls.isNotEmpty
+          ? rawUrls.length
+          : ((map['photoCount'] as num?)?.toInt() ?? 1);
       final String description = map['description'] as String? ?? '';
 
       final productModel = ProductModel(

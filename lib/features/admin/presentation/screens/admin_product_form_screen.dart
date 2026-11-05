@@ -29,10 +29,11 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   late final TextEditingController _price;
   late final TextEditingController _stitchDays;
   late final TextEditingController _rating;
-  late final TextEditingController _photoCount;
   late final TextEditingController _description;
+  final List<TextEditingController> _urlControllers = <TextEditingController>[];
   late CategoryKind _category;
   late ProductVisibility _visibility;
+  bool _isSaving = false;
 
   bool get _isEditing => widget.product != null;
 
@@ -46,12 +47,17 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       text: p != null ? '${p.stitchDays}' : '',
     );
     _rating = TextEditingController(text: p != null ? '${p.rating}' : '');
-    _photoCount = TextEditingController(
-      text: p != null ? '${p.photoCount}' : '',
-    );
     _description = TextEditingController(text: p?.description ?? '');
     _category = p?.category ?? CategoryKind.women;
     _visibility = p?.visibility ?? ProductVisibility.live;
+
+    if (p != null && p.imageUrls.isNotEmpty) {
+      for (final String url in p.imageUrls) {
+        _urlControllers.add(TextEditingController(text: url));
+      }
+    } else {
+      _urlControllers.add(TextEditingController());
+    }
   }
 
   @override
@@ -60,13 +66,52 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
     _price.dispose();
     _stitchDays.dispose();
     _rating.dispose();
-    _photoCount.dispose();
     _description.dispose();
+    for (final TextEditingController controller in _urlControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
-  void _save() {
-    if (!_formKey.currentState!.validate()) return;
+  void _addUrlField() {
+    if (_urlControllers.length < 6) {
+      setState(() {
+        _urlControllers.add(TextEditingController());
+      });
+    }
+  }
+
+  void _removeUrlField(int index) {
+    if (_urlControllers.length > 1) {
+      final TextEditingController controller = _urlControllers.removeAt(index);
+      controller.dispose();
+      setState(() {});
+    }
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate() || _isSaving) return;
+
+    final List<String> urls = _urlControllers
+        .map((c) => c.text.trim())
+        .where((u) => u.isNotEmpty)
+        .toList();
+
+    if (urls.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('At least 1 image URL is mandatory')),
+      );
+      return;
+    }
+
+    if (urls.length > 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maximum 6 image URLs allowed')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
 
     final AdminProduct product = AdminProduct(
       id: widget.product?.id ?? 'p_${DateTime.now().millisecondsSinceEpoch}',
@@ -75,12 +120,44 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       priceInr: int.parse(_price.text.trim()),
       stitchDays: int.tryParse(_stitchDays.text.trim()) ?? 0,
       rating: double.tryParse(_rating.text.trim()) ?? 0,
-      photoCount: int.tryParse(_photoCount.text.trim()) ?? 0,
+      photoCount: urls.length,
       visibility: _visibility,
       description: _description.text.trim(),
+      imageUrls: urls,
     );
 
-    context.read<AdminProductsCubit>().upsertProduct(product);
+    await context.read<AdminProductsCubit>().saveProduct(product);
+    if (!mounted) return;
+    widget.onDone();
+  }
+
+  Future<void> _delete() async {
+    if (widget.product == null || _isSaving) return;
+
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete product'),
+        content: Text('Are you sure you want to delete "${widget.product!.name}"?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    setState(() => _isSaving = true);
+    await context.read<AdminProductsCubit>().deleteProduct(widget.product!.id);
+    if (!mounted) return;
     widget.onDone();
   }
 
@@ -134,14 +211,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                       decimal: true,
                     ),
                   ),
-                  _field(
-                    label: 'Photos',
-                    controller: _photoCount,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                  ),
+                  _imageUrlsSection(),
                   _visibilityField(),
                   _field(
                     label: 'Description',
@@ -151,13 +221,29 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                   const SizedBox(height: AppSpacing.lg),
                   PrimaryButton(
                     label: _isEditing ? 'Save changes' : 'Add product',
+                    loading: _isSaving,
                     onPressed: _save,
                   ),
+                  if (_isEditing) ...<Widget>[
+                    const SizedBox(height: AppSpacing.sm),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.error,
+                          side: const BorderSide(color: AppColors.error),
+                        ),
+                        onPressed: _isSaving ? null : _delete,
+                        icon: const Icon(Icons.delete_outline, size: 18),
+                        label: const Text('Delete product'),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.sm),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: widget.onDone,
+                      onPressed: _isSaving ? null : widget.onDone,
                       child: const Text('Cancel'),
                     ),
                   ),
@@ -166,6 +252,83 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _imageUrlsSection() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              const Text(
+                'Product Image URLs (Min 1, Max 6)*',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                '${_urlControllers.length}/6',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          for (int i = 0; i < _urlControllers.length; i++) ...<Widget>[
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextFormField(
+                      controller: _urlControllers[i],
+                      keyboardType: TextInputType.url,
+                      decoration: InputDecoration(
+                        hintText: 'Image URL ${i + 1} (e.g. https://...)',
+                        isDense: true,
+                      ),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Enter image URL';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  if (_urlControllers.length > 1) ...<Widget>[
+                    const SizedBox(width: AppSpacing.xs),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.remove_circle_outline,
+                        color: AppColors.error,
+                        size: 20,
+                      ),
+                      onPressed: () => _removeUrlField(i),
+                      tooltip: 'Remove URL',
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+          if (_urlControllers.length < 6) ...<Widget>[
+            const SizedBox(height: AppSpacing.xs),
+            OutlinedButton.icon(
+              onPressed: _addUrlField,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add image URL'),
+            ),
+          ],
+        ],
       ),
     );
   }

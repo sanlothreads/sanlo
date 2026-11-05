@@ -13,6 +13,7 @@ class AdminProductModel {
     required this.photoCount,
     required this.visibility,
     this.description = '',
+    this.imageUrls = const <String>[],
   });
 
   final String id;
@@ -24,8 +25,15 @@ class AdminProductModel {
   final int photoCount;
   final String visibility;
   final String description;
+  final List<String> imageUrls;
 
   factory AdminProductModel.fromMap(Map<String, dynamic> map, String docId) {
+    final rawUrls = map['imageUrls'] as List<dynamic>? ?? map['images'] as List<dynamic>?;
+    final List<String> urls = rawUrls != null
+        ? rawUrls.map((e) => e.toString()).where((s) => s.trim().isNotEmpty).toList()
+        : <String>[];
+    final int count = (map['photoCount'] as num?)?.toInt() ?? urls.length;
+
     return AdminProductModel(
       id: (map['id'] as String?)?.isNotEmpty == true
           ? map['id'] as String
@@ -35,9 +43,10 @@ class AdminProductModel {
       priceInr: (map['priceInr'] as num?)?.toInt() ?? 0,
       stitchDays: (map['stitchDays'] as num?)?.toInt() ?? 0,
       rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
-      photoCount: (map['photoCount'] as num?)?.toInt() ?? 0,
+      photoCount: urls.isNotEmpty ? urls.length : count,
       visibility: map['visibility'] as String? ?? 'live',
       description: map['description'] as String? ?? '',
+      imageUrls: urls,
     );
   }
 
@@ -49,9 +58,10 @@ class AdminProductModel {
       'priceInr': priceInr,
       'stitchDays': stitchDays,
       'rating': rating,
-      'photoCount': photoCount,
+      'photoCount': imageUrls.isNotEmpty ? imageUrls.length : photoCount,
       'visibility': visibility,
       'description': description,
+      'imageUrls': imageUrls,
     };
   }
 
@@ -63,9 +73,12 @@ class AdminProductModel {
       priceInr: entity.priceInr,
       stitchDays: entity.stitchDays,
       rating: entity.rating,
-      photoCount: entity.photoCount,
+      photoCount: entity.imageUrls.isNotEmpty
+          ? entity.imageUrls.length
+          : entity.photoCount,
       visibility: entity.visibility.name,
       description: entity.description,
+      imageUrls: entity.imageUrls,
     );
   }
 
@@ -91,9 +104,10 @@ class AdminProductModel {
       priceInr: priceInr,
       stitchDays: stitchDays,
       rating: rating,
-      photoCount: photoCount,
+      photoCount: imageUrls.isNotEmpty ? imageUrls.length : photoCount,
       visibility: vis,
       description: description,
+      imageUrls: imageUrls,
     );
   }
 }
