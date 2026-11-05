@@ -38,8 +38,15 @@ class AdminProductsCubit extends Cubit<AdminProductsState> {
   void search(String text) => emit(state.copyWith(query: text));
 
   /// Saves [product] to state immediately, then persists to repository.
-  Future<void> saveProduct(AdminProduct product) {
-    final int i = state.allProducts.indexWhere((p) => p.id == product.id);
+  ///
+  /// A create passes an empty id; the repository assigns the final unique id
+  /// and returns the saved product, which is reconciled back into state so the
+  /// new row can be edited or deleted without a reload.
+  Future<void> saveProduct(AdminProduct product) async {
+    final bool isCreate = product.id.trim().isEmpty;
+    final int i = isCreate
+        ? -1
+        : state.allProducts.indexWhere((p) => p.id == product.id);
     final List<AdminProduct> updated = List.of(state.allProducts);
     if (i >= 0) {
       updated[i] = product;
@@ -48,9 +55,17 @@ class AdminProductsCubit extends Cubit<AdminProductsState> {
     }
     emit(state.copyWith(allProducts: updated));
 
-    return _repository.saveProduct(product).catchError((_) {
+    try {
+      final AdminProduct saved = await _repository.saveProduct(product);
+      if (saved.id != product.id) {
+        final List<AdminProduct> reconciled = state.allProducts
+            .map((p) => identical(p, product) || p.id == product.id ? saved : p)
+            .toList();
+        emit(state.copyWith(allProducts: reconciled));
+      }
+    } catch (_) {
       emit(state.copyWith(error: 'Could not save product, try again'));
-    });
+    }
   }
 
   /// Deletes [productId] from state immediately, then persists to repository.
