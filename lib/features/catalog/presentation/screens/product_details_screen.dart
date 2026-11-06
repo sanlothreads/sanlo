@@ -327,7 +327,7 @@ class _PhotoAreaState extends State<_PhotoArea> {
                 if (hasImage && currentUrl.isNotEmpty) {
                   return Image.network(
                     currentUrl,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.scaleDown,
                     width: double.infinity,
                     height: 320,
                     errorBuilder: (ctx, err, stack) => ImagePlaceholder(
@@ -448,19 +448,21 @@ class _VariantThumbnails extends StatelessWidget {
                 ),
               ),
               clipBehavior: Clip.antiAlias,
-              alignment: Alignment.center,
               child: hasUrl
-                  ? Image.network(
-                      imageUrls[index],
-                      fit: BoxFit.cover,
-                      width: 56,
-                      height: 56,
-                      errorBuilder: (ctx, err, stack) => Icon(
-                        Icons.checkroom,
-                        size: 22,
-                        color: selected
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
+                  ? ClipRRect(
+                      borderRadius: AppRadius.mdAll,
+                      child: Image.network(
+                        imageUrls[index],
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.checkroom,
+                          size: 22,
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.textSecondary,
+                        ),
                       ),
                     )
                   : Icon(

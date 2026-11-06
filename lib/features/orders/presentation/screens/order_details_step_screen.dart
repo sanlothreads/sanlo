@@ -341,7 +341,7 @@ class _ProductSummary extends StatelessWidget {
                       product.imageUrls.first,
                       width: 56,
                       height: 56,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.scaleDown,
                       errorBuilder: (ctx, err, stack) => const ImagePlaceholder(
                         width: 56,
                         height: 56,
