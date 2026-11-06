@@ -120,6 +120,9 @@ class AdminOrdersScreen extends StatelessWidget {
 
   Widget _wide(BuildContext context, AdminOrdersState state) {
     final AdminOrder? selected = state.selectedOrder;
+    final String placeholderText =
+        state.allOrders.isEmpty ? 'No orders yet' : 'Select an order';
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -133,7 +136,7 @@ class AdminOrdersScreen extends StatelessWidget {
               borderRadius: AppRadius.lgAll,
             ),
             child: selected == null
-                ? const Center(child: Text('Select an order'))
+                ? Center(child: Text(placeholderText))
                 : AdminOrderDetailPanel(
                     order: selected,
                     onAdvance: () =>
@@ -147,6 +150,9 @@ class AdminOrdersScreen extends StatelessWidget {
 
   Widget _listCard(BuildContext context, AdminOrdersState state) {
     final List<AdminOrder> orders = state.filteredOrders;
+    final String emptyMessage =
+        state.allOrders.isEmpty ? 'No orders yet' : 'No orders in this stage';
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -154,7 +160,7 @@ class AdminOrdersScreen extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: orders.isEmpty
-          ? const Center(child: Text('No orders in this stage'))
+          ? Center(child: Text(emptyMessage))
           : ListView.separated(
               itemCount: orders.length,
               separatorBuilder: (_, __) =>
@@ -173,8 +179,11 @@ class AdminOrdersScreen extends StatelessWidget {
 
   Widget _narrow(BuildContext context, AdminOrdersState state) {
     final List<AdminOrder> orders = state.filteredOrders;
+    final String emptyMessage =
+        state.allOrders.isEmpty ? 'No orders yet' : 'No orders in this stage';
+
     if (orders.isEmpty) {
-      return const Center(child: Text('No orders in this stage'));
+      return Center(child: Text(emptyMessage));
     }
     return Container(
       decoration: BoxDecoration(

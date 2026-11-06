@@ -111,12 +111,7 @@ class FirebaseAdminRepository implements AdminRepository {
     try {
       final snapshot = await _ordersRef.get();
       if (snapshot.docs.isEmpty) {
-        // Seed initial orders from mock data if Firestore orders collection is empty
-        final mockOrders = await _mockFallback.loadOrders();
-        for (final o in mockOrders) {
-          await _saveMockAdminOrder(o);
-        }
-        return mockOrders;
+        return <AdminOrder>[];
       }
 
       final List<AdminOrder> orders = <AdminOrder>[];
@@ -129,20 +124,11 @@ class FirebaseAdminRepository implements AdminRepository {
         } catch (_) {}
       }
 
-      if (orders.isEmpty) {
-        return _mockFallback.loadOrders();
-      }
-
       orders.sort((a, b) => b.placedDate.compareTo(a.placedDate));
       return orders;
     } catch (_) {
-      return _mockFallback.loadOrders();
+      return <AdminOrder>[];
     }
-  }
-
-  Future<void> _saveMockAdminOrder(AdminOrder order) async {
-    final data = AdminOrderModel.fromEntity(order).toMap();
-    await _ordersRef.doc(order.id).set(data, SetOptions(merge: true));
   }
 
   @override
@@ -216,9 +202,6 @@ class FirebaseAdminRepository implements AdminRepository {
   Future<DashboardSummary> loadDashboard() async {
     try {
       final List<AdminOrder> orders = await loadOrders();
-      if (orders.isEmpty) {
-        return _mockFallback.loadDashboard();
-      }
 
       final int totalOrders = orders.length;
       final DateTime now = DateTime.now();
@@ -246,7 +229,9 @@ class FirebaseAdminRepository implements AdminRepository {
       return DashboardSummary(
         totalOrders: totalOrders,
         newToday: newToday,
-        newTodayNote: '$newToday orders placed today',
+        newTodayNote: totalOrders == 0
+            ? 'No orders today'
+            : '$newToday orders placed today',
         inProgress: inProgress,
         inProgressNote: 'In stitching pipeline',
         readyToCollect: readyToCollect,
@@ -255,7 +240,24 @@ class FirebaseAdminRepository implements AdminRepository {
         recentOrders: orders.take(5).toList(growable: false),
       );
     } catch (_) {
-      return _mockFallback.loadDashboard();
+      return const DashboardSummary(
+        totalOrders: 0,
+        newToday: 0,
+        newTodayNote: 'No orders today',
+        inProgress: 0,
+        inProgressNote: 'In stitching pipeline',
+        readyToCollect: 0,
+        readyNote: 'Payment due at shop',
+        stageCounts: {
+          OrderStage.ordered: 0,
+          OrderStage.measurementDone: 0,
+          OrderStage.stitchingStarted: 0,
+          OrderStage.stitchingFinished: 0,
+          OrderStage.finalTouchUp: 0,
+          OrderStage.allSet: 0,
+        },
+        recentOrders: [],
+      );
     }
   }
 
@@ -264,12 +266,12 @@ class FirebaseAdminRepository implements AdminRepository {
     try {
       final snapshot = await _db.ref('users').get();
       if (!snapshot.exists || snapshot.value == null) {
-        return _mockFallback.loadCustomers();
+        return <AdminCustomer>[];
       }
 
       final Object? value = snapshot.value;
       if (value is! Map) {
-        return _mockFallback.loadCustomers();
+        return <AdminCustomer>[];
       }
 
       final List<AdminOrder> orders = await loadOrders();
@@ -338,9 +340,9 @@ class FirebaseAdminRepository implements AdminRepository {
         );
       }
 
-      return customers.isEmpty ? _mockFallback.loadCustomers() : customers;
+      return customers;
     } catch (_) {
-      return _mockFallback.loadCustomers();
+      return <AdminCustomer>[];
     }
   }
 

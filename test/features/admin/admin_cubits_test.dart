@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sanlo/features/admin/data/models/admin_customer_model.dart';
+import 'package:sanlo/features/admin/data/models/admin_order_model.dart';
 import 'package:sanlo/features/admin/data/repositories/mock_admin_repository.dart';
 import 'package:sanlo/features/admin/domain/entities/admin_product.dart';
 import 'package:sanlo/features/admin/domain/entities/order_stage.dart';
@@ -10,7 +12,37 @@ import 'package:sanlo/features/catalog/domain/entities/category.dart';
 void main() {
   late MockAdminRepository repo;
 
-  setUp(() => repo = MockAdminRepository());
+  final sampleOrder = AdminOrderModel(
+    id: 'SN-1001',
+    item: 'Designer Blouse',
+    customerName: 'Priya Sharma',
+    customerPhone: '+91 98765 43210',
+    customerAddress: '21 Park Street, Pune',
+    placedDate: DateTime(2025, 10, 25),
+    dueDate: DateTime(2025, 10, 29),
+    amountAtShopInr: 650,
+    stage: 'ordered',
+    measurementState: 'entered',
+  );
+
+  final sampleCustomer = AdminCustomerModel(
+    id: 'c_priya',
+    name: 'Priya Sharma',
+    mobile: '+91 98765 43210',
+    gender: 'female',
+    type: 'registered',
+    registeredDate: '20-Oct-2025 10:15 AM',
+    lastLogin: '24-Oct-2025 02:30 PM',
+    orderCount: 1,
+    lastOrderDate: DateTime(2025, 10, 24),
+  );
+
+  setUp(
+    () => repo = MockAdminRepository(
+      initialOrders: [sampleOrder],
+      initialCustomers: [sampleCustomer],
+    ),
+  );
 
   group('AdminOrdersCubit', () {
     test('load selects the first order by default', () async {
