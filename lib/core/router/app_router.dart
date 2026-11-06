@@ -3,9 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/entities/auth_user.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/screens/sign_in_screen.dart';
 import '../../features/auth/presentation/screens/sign_up_screen.dart';
 import '../../features/admin/domain/entities/admin_product.dart';
+import '../../features/admin/domain/repositories/admin_access_repository.dart';
+import '../../features/admin/presentation/screens/access_denied_screen.dart';
 import '../../features/admin/presentation/screens/admin_customers_screen.dart';
 import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
 import '../../features/admin/presentation/screens/admin_orders_screen.dart';
@@ -114,7 +117,9 @@ GoRouter _buildRouter() {
               BuildContext context,
               GoRouterState state,
               StatefulNavigationShell navigationShell,
-            ) => AdminShellHost(navigationShell: navigationShell),
+            ) => _AdminGuard(
+              child: AdminShellHost(navigationShell: navigationShell),
+            ),
         branches: <StatefulShellBranch>[
           StatefulShellBranch(
             routes: <RouteBase>[
@@ -163,9 +168,7 @@ GoRouter _buildRouter() {
                     path: 'new',
                     name: Routes.adminProductNewName,
                     builder: (BuildContext context, GoRouterState state) =>
-                        AdminProductFormScreen(
-                          onDone: () => context.pop(),
-                        ),
+                        AdminProductFormScreen(onDone: () => context.pop()),
                   ),
                   GoRoute(
                     path: ':id/edit',
@@ -191,6 +194,14 @@ GoRouter _buildRouter() {
             ],
           ),
         ],
+      ),
+
+      // --- Access denied (top-level, sibling of the admin shell) --------------
+      GoRoute(
+        path: Routes.accessDeniedPath,
+        name: Routes.accessDeniedName,
+        builder: (BuildContext context, GoRouterState state) =>
+            const AccessDeniedScreen(),
       ),
 
       // --- Product details ----------------------------------------------------
@@ -321,5 +332,91 @@ class _OrderGuard extends StatelessWidget {
     }
 
     return child;
+  }
+}
+
+/// Tri-state resolution of the admin authorization check.
+enum _AdminAccess { pending, granted, denied }
+
+/// Minimal full-screen loading view shown while the admin check is unresolved
+/// and during the one-frame window before a scheduled redirect takes effect.
+class _AdminGuardLoading extends StatelessWidget {
+  const _AdminGuardLoading();
+
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: CircularProgressIndicator()));
+}
+
+/// Authorization gate for the entire `/admin/...` subtree.
+///
+/// `redirect` is synchronous and cannot await [AdminAccessRepository.isAdmin],
+/// and it cannot render a loading indicator. So — mirroring [_OrderGuard] — the
+/// gate lives in the widget tree. On first build it short-circuits
+/// unauthenticated/guest users (no Firebase lookup), otherwise kicks off the
+/// async admin check in [initState]. While unresolved it shows a spinner; on
+/// "admin" it renders the admin shell child; on not-admin / error /
+/// unauthenticated / guest it schedules a post-frame redirect to
+/// `/access-denied`. Fails closed on error.
+class _AdminGuard extends StatefulWidget {
+  const _AdminGuard({required this.child});
+
+  /// The admin shell host to render once access is granted.
+  final Widget child;
+
+  @override
+  State<_AdminGuard> createState() => _AdminGuardState();
+}
+
+class _AdminGuardState extends State<_AdminGuard> {
+  _AdminAccess _access = _AdminAccess.pending;
+
+  @override
+  void initState() {
+    super.initState();
+    final AuthState auth = context.read<AuthBloc>().state;
+
+    // Short-circuit: unauthenticated or guest → deny without a Firebase lookup.
+    // isAuthenticated is false for guests and no-session users.
+    if (!auth.isAuthenticated) {
+      _access = _AdminAccess.denied;
+      return; // build() will schedule the redirect
+    }
+
+    _resolve(auth.user?.mobile); // async; updates _access via setState
+  }
+
+  Future<void> _resolve(String? mobile) async {
+    try {
+      final AdminAccessRepository access = context
+          .read<AdminAccessRepository>();
+      final bool isAdmin = await access.isAdmin(mobile);
+      if (!mounted) return;
+      setState(
+        () => _access = isAdmin ? _AdminAccess.granted : _AdminAccess.denied,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _access = _AdminAccess.denied); // Fail closed.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    switch (_access) {
+      case _AdminAccess.granted:
+        return widget.child;
+      case _AdminAccess.pending:
+        return const _AdminGuardLoading();
+      case _AdminAccess.denied:
+        // Schedule the redirect after this frame — never navigate during build
+        // (mirrors _OrderGuard). Withhold admin content meanwhile.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.goNamed(Routes.accessDeniedName);
+          }
+        });
+        return const _AdminGuardLoading();
+    }
   }
 }

@@ -93,26 +93,19 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image area — network image if available, else pastel tinted placeholder.
+            // Image area — product network image inside placeholder box with pastel fallback.
             Expanded(
-              child: product.imageUrls.isNotEmpty
-                  ? Image.network(
-                      product.imageUrls.first,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (ctx, err, stack) => ImagePlaceholder(
-                        width: double.infinity,
-                        backgroundColor: _cardBackground(),
-                        foregroundColor: _iconAccent(),
-                        borderRadius: BorderRadius.zero,
-                      ),
-                    )
-                  : ImagePlaceholder(
-                      width: double.infinity,
-                      backgroundColor: _cardBackground(),
-                      foregroundColor: _iconAccent(),
-                      borderRadius: BorderRadius.zero,
-                    ),
+              child: ImagePlaceholder(
+                imageUrl: product.imageUrls.isNotEmpty
+                    ? product.imageUrls.first
+                    : null,
+                width: double.infinity,
+                height: double.infinity,
+                backgroundColor: _cardBackground(),
+                foregroundColor: _iconAccent(),
+                borderRadius: BorderRadius.zero,
+                fit: BoxFit.cover,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.smd),

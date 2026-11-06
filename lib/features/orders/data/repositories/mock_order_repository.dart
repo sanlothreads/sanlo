@@ -36,6 +36,9 @@ class MockOrderRepository implements OrderRepository {
     readyInDays: 5,
     priceInr: 650,
     imageCount: 4,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop',
+    ],
   );
 
   static const Product _kurta = Product(
@@ -47,6 +50,9 @@ class MockOrderRepository implements OrderRepository {
     readyInDays: 6,
     priceInr: 1000,
     imageCount: 4,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1597983073493-88cd35cfa3d0?w=500&auto=format&fit=crop',
+    ],
   );
 
   static const Product _anarkali = Product(
@@ -58,6 +64,9 @@ class MockOrderRepository implements OrderRepository {
     readyInDays: 7,
     priceInr: 900,
     imageCount: 4,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop',
+    ],
   );
 
   static const Product _shirt = Product(
@@ -69,6 +78,9 @@ class MockOrderRepository implements OrderRepository {
     readyInDays: 4,
     priceInr: 550,
     imageCount: 4,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500&auto=format&fit=crop',
+    ],
   );
 
   static const Product _frock = Product(
@@ -80,6 +92,9 @@ class MockOrderRepository implements OrderRepository {
     readyInDays: 3,
     priceInr: 450,
     imageCount: 4,
+    imageUrls: [
+      'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=500&auto=format&fit=crop',
+    ],
   );
 
   // --- Order seeds --------------------------------------------------------

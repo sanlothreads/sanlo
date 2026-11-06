@@ -35,6 +35,9 @@ class MockProductRepository implements ProductRepository {
       readyInDays: 5,
       priceInr: 650,
       imageCount: 4,
+      imageUrls: [
+        'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop',
+      ],
     ),
     ProductModel(
       id: 'p_anarkali',
@@ -45,6 +48,9 @@ class MockProductRepository implements ProductRepository {
       readyInDays: 7,
       priceInr: 900,
       imageCount: 4,
+      imageUrls: [
+        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop',
+      ],
     ),
     ProductModel(
       id: 'p_shirt',
@@ -55,6 +61,9 @@ class MockProductRepository implements ProductRepository {
       readyInDays: 4,
       priceInr: 550,
       imageCount: 4,
+      imageUrls: [
+        'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500&auto=format&fit=crop',
+      ],
     ),
     ProductModel(
       id: 'p_kurta',
@@ -65,6 +74,9 @@ class MockProductRepository implements ProductRepository {
       readyInDays: 6,
       priceInr: 1000,
       imageCount: 4,
+      imageUrls: [
+        'https://images.unsplash.com/photo-1597983073493-88cd35cfa3d0?w=500&auto=format&fit=crop',
+      ],
     ),
     ProductModel(
       id: 'p_frock',
@@ -75,6 +87,9 @@ class MockProductRepository implements ProductRepository {
       readyInDays: 3,
       priceInr: 450,
       imageCount: 4,
+      imageUrls: [
+        'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=500&auto=format&fit=crop',
+      ],
     ),
     ProductModel(
       id: 'p_salwar',
@@ -85,6 +100,9 @@ class MockProductRepository implements ProductRepository {
       readyInDays: 8,
       priceInr: 1100,
       imageCount: 4,
+      imageUrls: [
+        'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=500&auto=format&fit=crop',
+      ],
     ),
   ];
 
