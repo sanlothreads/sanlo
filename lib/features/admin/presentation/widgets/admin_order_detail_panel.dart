@@ -71,26 +71,38 @@ class AdminOrderDetailPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(order.customerName,
-              style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600)),
+          Text(
+            order.customerName,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(order.customerPhone,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13)),
+          Text(
+            order.customerPhone,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(order.customerAddress,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13)),
+          Text(
+            order.customerAddress,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _measurementsCard() {
-    final String note = order.measurementNote ??
+    final String note =
+        order.measurementNote ??
         (order.measurementState == MeasurementState.entered
             ? 'Customer entered measurements online.'
             : 'Take measurements when the customer visits the shop.');
@@ -104,15 +116,23 @@ class AdminOrderDetailPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Text('Measurements',
-              style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700)),
+          const Text(
+            'Measurements',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           const SizedBox(height: AppSpacing.xs),
-          Text(note,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13, height: 1.4)),
+          Text(
+            note,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
         ],
       ),
     );

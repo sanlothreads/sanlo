@@ -263,6 +263,33 @@ class MockAdminRepository implements AdminRepository {
   }
 
   @override
+  Stream<List<AdminOrder>> watchOrders() async* {
+    yield await loadOrders();
+  }
+
+  @override
+  Future<void> updateOrderStage(String orderId, OrderStage nextStage) async {
+    await Future<void>.delayed(_latency);
+    final int i = _orders.indexWhere((o) => o.id == orderId);
+    if (i >= 0) {
+      final AdminOrderModel old = _orders[i];
+      _orders[i] = AdminOrderModel(
+        id: old.id,
+        item: old.item,
+        customerName: old.customerName,
+        customerPhone: old.customerPhone,
+        customerAddress: old.customerAddress,
+        placedDate: old.placedDate,
+        dueDate: old.dueDate,
+        amountAtShopInr: old.amountAtShopInr,
+        stage: nextStage.name,
+        measurementState: old.measurementState,
+        measurementNote: old.measurementNote,
+      );
+    }
+  }
+
+  @override
   Future<List<AdminProduct>> loadProducts() async {
     await Future<void>.delayed(_latency);
     return _products.map((m) => m.toEntity()).toList(growable: false);

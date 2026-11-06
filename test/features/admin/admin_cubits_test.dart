@@ -2,10 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sanlo/features/admin/data/repositories/mock_admin_repository.dart';
 import 'package:sanlo/features/admin/domain/entities/admin_product.dart';
 import 'package:sanlo/features/admin/domain/entities/order_stage.dart';
-import 'package:sanlo/features/catalog/domain/entities/category.dart';
 import 'package:sanlo/features/admin/presentation/cubit/admin_customers_cubit.dart';
 import 'package:sanlo/features/admin/presentation/cubit/admin_orders_cubit.dart';
 import 'package:sanlo/features/admin/presentation/cubit/admin_products_cubit.dart';
+import 'package:sanlo/features/catalog/domain/entities/category.dart';
 
 void main() {
   late MockAdminRepository repo;
@@ -56,6 +56,13 @@ void main() {
       cubit.advanceSelected();
       expect(cubit.state.selectedOrder!.stage, OrderStage.allSet);
     });
+
+    test('updateSelectedStage directly sets selected order stage', () async {
+      final cubit = AdminOrdersCubit(repo);
+      await cubit.load();
+      await cubit.updateSelectedStage(OrderStage.stitchingStarted);
+      expect(cubit.state.selectedOrder!.stage, OrderStage.stitchingStarted);
+    });
   });
 
   group('AdminProductsCubit', () {
@@ -65,13 +72,16 @@ void main() {
       cubit.search('shirt');
       expect(cubit.state.visibleProducts, isNotEmpty);
       expect(
-        cubit.state.visibleProducts
-            .every((p) => p.name.toLowerCase().contains('shirt')),
+        cubit.state.visibleProducts.every(
+          (p) => p.name.toLowerCase().contains('shirt'),
+        ),
         isTrue,
       );
       cubit.search('');
-      expect(cubit.state.visibleProducts.length,
-          cubit.state.allProducts.length);
+      expect(
+        cubit.state.visibleProducts.length,
+        cubit.state.allProducts.length,
+      );
     });
 
     test('upsert adds a new product and updates an existing one', () async {
@@ -111,8 +121,10 @@ void main() {
       cubit.search('98765');
       expect(cubit.state.visibleCustomers, isNotEmpty);
       cubit.search('');
-      expect(cubit.state.visibleCustomers.length,
-          cubit.state.allCustomers.length);
+      expect(
+        cubit.state.visibleCustomers.length,
+        cubit.state.allCustomers.length,
+      );
     });
   });
 }

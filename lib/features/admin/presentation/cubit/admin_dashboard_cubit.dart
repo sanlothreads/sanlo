@@ -21,10 +21,7 @@ class AdminDashboardCubit extends Cubit<AdminDashboardState> {
     try {
       final DashboardSummary summary = await _repository.loadDashboard();
       emit(
-        state.copyWith(
-          status: AdminDashboardStatus.loaded,
-          summary: summary,
-        ),
+        state.copyWith(status: AdminDashboardStatus.loaded, summary: summary),
       );
     } catch (_) {
       emit(
@@ -43,8 +40,7 @@ class AdminDashboardCubit extends Cubit<AdminDashboardState> {
     final DashboardSummary? summary = state.summary;
     if (summary == null) return;
 
-    final int i =
-        summary.recentOrders.indexWhere((o) => o.id == orderId);
+    final int i = summary.recentOrders.indexWhere((o) => o.id == orderId);
     if (i < 0) return;
 
     final AdminOrder order = summary.recentOrders[i];

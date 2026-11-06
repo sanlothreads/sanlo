@@ -35,11 +35,14 @@ class AdminOrdersScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Text('Orders',
-                  style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700)),
+              const Text(
+                'Orders',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: AppSpacing.md),
               _filterChips(context, state),
               const SizedBox(height: AppSpacing.md),
@@ -120,10 +123,7 @@ class AdminOrdersScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Expanded(
-          flex: 2,
-          child: _listCard(context, state),
-        ),
+        Expanded(flex: 2, child: _listCard(context, state)),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           flex: 3,
@@ -220,9 +220,8 @@ class AdminOrdersScreen extends StatelessWidget {
                 }
                 return AdminOrderDetailPanel(
                   order: selected,
-                  onAdvance: () => sheetContext
-                      .read<AdminOrdersCubit>()
-                      .advanceSelected(),
+                  onAdvance: () =>
+                      sheetContext.read<AdminOrdersCubit>().advanceSelected(),
                 );
               },
             ),
