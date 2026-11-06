@@ -167,7 +167,9 @@ class AdminDashboardScreen extends StatelessWidget {
   Widget _stageGrid(BuildContext context, DashboardSummary s) {
     final double width = MediaQuery.sizeOf(context).width;
     final int columns = width >= 1200 ? 6 : (width >= 600 ? 3 : 2);
-    final double aspectRatio = width >= 1200 ? 1.4 : (width >= 600 ? 1.1 : 0.95);
+    final double aspectRatio = width >= 1200
+        ? 1.4
+        : (width >= 600 ? 1.1 : 0.95);
     return GridView.count(
       crossAxisCount: columns,
       shrinkWrap: true,
@@ -233,8 +235,19 @@ class AdminDashboardScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.md),
-                for (final AdminOrder o in s.recentOrders)
-                  _updateCard(context, o),
+                if (s.recentOrders.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                    child: Center(
+                      child: Text(
+                        'No orders yet',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  )
+                else
+                  for (final AdminOrder o in s.recentOrders)
+                    _updateCard(context, o),
               ],
             ),
           ),

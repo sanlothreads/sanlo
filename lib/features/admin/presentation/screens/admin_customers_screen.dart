@@ -40,8 +40,12 @@ class AdminCustomersScreen extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               Expanded(
                 child: customers.isEmpty
-                    ? const Center(
-                        child: Text('No customers match your search'),
+                    ? Center(
+                        child: Text(
+                          state.query.trim().isEmpty
+                              ? 'No customers registered'
+                              : 'No customers match your search',
+                        ),
                       )
                     : SingleChildScrollView(
                         child: SectionCard(

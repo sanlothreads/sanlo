@@ -35,11 +35,14 @@ class AdminOrdersScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Text('Orders',
-                  style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700)),
+              const Text(
+                'Orders',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: AppSpacing.md),
               _filterChips(context, state),
               const SizedBox(height: AppSpacing.md),
@@ -117,13 +120,13 @@ class AdminOrdersScreen extends StatelessWidget {
 
   Widget _wide(BuildContext context, AdminOrdersState state) {
     final AdminOrder? selected = state.selectedOrder;
+    final String placeholderText =
+        state.allOrders.isEmpty ? 'No orders yet' : 'Select an order';
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Expanded(
-          flex: 2,
-          child: _listCard(context, state),
-        ),
+        Expanded(flex: 2, child: _listCard(context, state)),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           flex: 3,
@@ -133,7 +136,7 @@ class AdminOrdersScreen extends StatelessWidget {
               borderRadius: AppRadius.lgAll,
             ),
             child: selected == null
-                ? const Center(child: Text('Select an order'))
+                ? Center(child: Text(placeholderText))
                 : AdminOrderDetailPanel(
                     order: selected,
                     onAdvance: () =>
@@ -147,6 +150,9 @@ class AdminOrdersScreen extends StatelessWidget {
 
   Widget _listCard(BuildContext context, AdminOrdersState state) {
     final List<AdminOrder> orders = state.filteredOrders;
+    final String emptyMessage =
+        state.allOrders.isEmpty ? 'No orders yet' : 'No orders in this stage';
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -154,7 +160,7 @@ class AdminOrdersScreen extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: orders.isEmpty
-          ? const Center(child: Text('No orders in this stage'))
+          ? Center(child: Text(emptyMessage))
           : ListView.separated(
               itemCount: orders.length,
               separatorBuilder: (_, __) =>
@@ -173,8 +179,11 @@ class AdminOrdersScreen extends StatelessWidget {
 
   Widget _narrow(BuildContext context, AdminOrdersState state) {
     final List<AdminOrder> orders = state.filteredOrders;
+    final String emptyMessage =
+        state.allOrders.isEmpty ? 'No orders yet' : 'No orders in this stage';
+
     if (orders.isEmpty) {
-      return const Center(child: Text('No orders in this stage'));
+      return Center(child: Text(emptyMessage));
     }
     return Container(
       decoration: BoxDecoration(
@@ -220,9 +229,8 @@ class AdminOrdersScreen extends StatelessWidget {
                 }
                 return AdminOrderDetailPanel(
                   order: selected,
-                  onAdvance: () => sheetContext
-                      .read<AdminOrdersCubit>()
-                      .advanceSelected(),
+                  onAdvance: () =>
+                      sheetContext.read<AdminOrdersCubit>().advanceSelected(),
                 );
               },
             ),

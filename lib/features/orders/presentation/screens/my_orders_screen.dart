@@ -316,15 +316,21 @@ class _OrderCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                ImagePlaceholder(
-                  imageUrl: order.product.imageUrls.isNotEmpty
-                      ? order.product.imageUrls.first
-                      : null,
-                  width: 56,
-                  height: 56,
-                  borderRadius: AppRadius.mdAll,
-                  backgroundColor: AppColors.cardLavender,
-                  icon: Icons.checkroom,
+                GestureDetector(
+                  onTap: () => context.pushNamed(
+                    'productDetails',
+                    pathParameters: <String, String>{'id': order.product.id},
+                  ),
+                  child: ImagePlaceholder(
+                    imageUrl: order.product.imageUrls.isNotEmpty
+                        ? order.product.imageUrls.first
+                        : null,
+                    width: 56,
+                    height: 56,
+                    borderRadius: AppRadius.mdAll,
+                    backgroundColor: AppColors.cardLavender,
+                    icon: Icons.checkroom,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.smd),
                 Expanded(

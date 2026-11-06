@@ -12,85 +12,16 @@ import '../models/admin_product_model.dart';
 /// mockups. Maps DTO models to domain entities via `toEntity()`, mirroring the
 /// customer-side mocks so a Firebase-backed implementation can slot in later.
 class MockAdminRepository implements AdminRepository {
+  MockAdminRepository({
+    List<AdminOrderModel>? initialOrders,
+    List<AdminCustomerModel>? initialCustomers,
+  }) : _orders = initialOrders ?? <AdminOrderModel>[],
+       _customers = initialCustomers ?? <AdminCustomerModel>[];
+
   static const _latency = Duration(milliseconds: 150);
 
-  static final List<AdminOrderModel> _orders = [
-    AdminOrderModel(
-      id: 'SN-1048',
-      item: 'Designer Blouse',
-      customerName: 'Priya Sharma',
-      customerPhone: '+91 98765 43210',
-      customerAddress: '21 Park Street, Pune',
-      placedDate: DateTime(2025, 10, 25),
-      dueDate: DateTime(2025, 10, 29),
-      amountAtShopInr: 650,
-      stage: 'ordered',
-      measurementState: 'entered',
-    ),
-    AdminOrderModel(
-      id: 'SN-1047',
-      item: 'Formal Shirt',
-      customerName: 'Rahul Verma',
-      customerPhone: '+91 98111 22334',
-      customerAddress: '12 MG Road, Pune',
-      placedDate: DateTime(2025, 10, 24),
-      dueDate: DateTime(2025, 10, 30),
-      amountAtShopInr: 550,
-      stage: 'ordered',
-      measurementState: 'notSure',
-      measurementNote:
-          'Customer chose "Not sure" - take measurements when they visit '
-          'the shop.',
-    ),
-    AdminOrderModel(
-      id: 'SN-1045',
-      item: 'Salwar Suit',
-      customerName: 'Anita Desai',
-      customerPhone: '+91 99887 66554',
-      customerAddress: '5 Lake View, Pune',
-      placedDate: DateTime(2025, 10, 23),
-      dueDate: DateTime(2025, 11, 1),
-      amountAtShopInr: 1100,
-      stage: 'measurementDone',
-      measurementState: 'entered',
-    ),
-    AdminOrderModel(
-      id: 'SN-1041',
-      item: 'Kurta Pajama',
-      customerName: 'Vikram Singh',
-      customerPhone: '+91 97654 32109',
-      customerAddress: '8 Hill Road, Pune',
-      placedDate: DateTime(2025, 10, 20),
-      dueDate: DateTime(2025, 10, 27),
-      amountAtShopInr: 1000,
-      stage: 'stitchingStarted',
-      measurementState: 'entered',
-    ),
-    AdminOrderModel(
-      id: 'SN-1039',
-      item: 'Kids Kurta Set',
-      customerName: 'Sana Khan',
-      customerPhone: '+91 91234 56789',
-      customerAddress: '3 Green Avenue, Pune',
-      placedDate: DateTime(2025, 10, 19),
-      dueDate: DateTime(2025, 10, 25),
-      amountAtShopInr: 500,
-      stage: 'stitchingFinished',
-      measurementState: 'entered',
-    ),
-    AdminOrderModel(
-      id: 'SN-1036',
-      item: 'Anarkali Kurti',
-      customerName: 'Meera Iyer',
-      customerPhone: '+91 90000 12345',
-      customerAddress: '19 River Side, Pune',
-      placedDate: DateTime(2025, 10, 17),
-      dueDate: DateTime(2025, 10, 26),
-      amountAtShopInr: 900,
-      stage: 'finalTouchUp',
-      measurementState: 'entered',
-    ),
-  ];
+  final List<AdminOrderModel> _orders;
+  final List<AdminCustomerModel> _customers;
 
   static final List<AdminProductModel> _products = [
     AdminProductModel(
@@ -195,71 +126,37 @@ class MockAdminRepository implements AdminRepository {
     ),
   ];
 
-  static final List<AdminCustomerModel> _customers = [
-    AdminCustomerModel(
-      id: 'c_priya',
-      name: 'Priya Sharma',
-      mobile: '+91 98765 43210',
-      gender: 'female',
-      type: 'registered',
-      registeredDate: '20-Oct-2025 10:15 AM',
-      lastLogin: '24-Oct-2025 02:30 PM',
-      orderCount: 1,
-      lastOrderDate: DateTime(2025, 10, 24),
-    ),
-    AdminCustomerModel(
-      id: 'c_rahul',
-      name: 'Rahul Verma',
-      mobile: '+91 98111 22334',
-      email: 'rahul@example.com',
-      gender: 'male',
-      type: 'registered',
-      registeredDate: '15-Oct-2025 11:00 AM',
-      lastLogin: '24-Oct-2025 05:45 PM',
-      orderCount: 3,
-      lastOrderDate: DateTime(2025, 10, 24),
-    ),
-    AdminCustomerModel(
-      id: 'c_anita',
-      name: 'Anita Desai',
-      mobile: '+91 99887 66554',
-      email: 'anita@example.com',
-      gender: 'female',
-      type: 'registered',
-      registeredDate: '10-Oct-2025 09:30 AM',
-      lastLogin: '23-Oct-2025 01:15 PM',
-      orderCount: 5,
-      lastOrderDate: DateTime(2025, 10, 23),
-    ),
-    AdminCustomerModel(
-      id: 'c_vikram',
-      name: 'Vikram Singh',
-      mobile: '+91 97654 32109',
-      gender: 'male',
-      type: 'registered',
-      registeredDate: '05-Oct-2025 03:20 PM',
-      lastLogin: '20-Oct-2025 04:00 PM',
-      orderCount: 1,
-      lastOrderDate: DateTime(2025, 10, 20),
-    ),
-    AdminCustomerModel(
-      id: 'c_sana',
-      name: 'Sana Khan',
-      mobile: '+91 91234 56789',
-      email: 'sana@example.com',
-      gender: 'female',
-      type: 'registered',
-      registeredDate: '01-Oct-2025 08:45 AM',
-      lastLogin: '19-Oct-2025 12:30 PM',
-      orderCount: 2,
-      lastOrderDate: DateTime(2025, 10, 19),
-    ),
-  ];
-
   @override
   Future<List<AdminOrder>> loadOrders() async {
     await Future<void>.delayed(_latency);
     return _orders.map((m) => m.toEntity()).toList(growable: false);
+  }
+
+  @override
+  Stream<List<AdminOrder>> watchOrders() async* {
+    yield await loadOrders();
+  }
+
+  @override
+  Future<void> updateOrderStage(String orderId, OrderStage nextStage) async {
+    await Future<void>.delayed(_latency);
+    final int i = _orders.indexWhere((o) => o.id == orderId);
+    if (i >= 0) {
+      final AdminOrderModel old = _orders[i];
+      _orders[i] = AdminOrderModel(
+        id: old.id,
+        item: old.item,
+        customerName: old.customerName,
+        customerPhone: old.customerPhone,
+        customerAddress: old.customerAddress,
+        placedDate: old.placedDate,
+        dueDate: old.dueDate,
+        amountAtShopInr: old.amountAtShopInr,
+        stage: nextStage.name,
+        measurementState: old.measurementState,
+        measurementNote: old.measurementNote,
+      );
+    }
   }
 
   @override
@@ -303,22 +200,22 @@ class MockAdminRepository implements AdminRepository {
     final List<AdminOrder> orders = _orders
         .map((m) => m.toEntity())
         .toList(growable: false);
+    final Map<OrderStage, int> stageCounts = <OrderStage, int>{
+      for (final OrderStage s in OrderStage.values) s: 0,
+    };
+    for (final AdminOrder order in orders) {
+      stageCounts[order.stage] = (stageCounts[order.stage] ?? 0) + 1;
+    }
+
     return DashboardSummary(
-      totalOrders: 27,
-      newToday: 3,
-      newTodayNote: '1 needs measurement at shop',
-      inProgress: 12,
-      inProgressNote: 'Measured \u2192 touch-up',
-      readyToCollect: 6,
+      totalOrders: orders.length,
+      newToday: 0,
+      newTodayNote: 'No orders today',
+      inProgress: orders.where((o) => o.stage != OrderStage.allSet).length,
+      inProgressNote: 'In stitching pipeline',
+      readyToCollect: orders.where((o) => o.stage == OrderStage.allSet).length,
       readyNote: 'Payment due at shop',
-      stageCounts: const {
-        OrderStage.ordered: 5,
-        OrderStage.measurementDone: 4,
-        OrderStage.stitchingStarted: 7,
-        OrderStage.stitchingFinished: 3,
-        OrderStage.finalTouchUp: 2,
-        OrderStage.allSet: 6,
-      },
+      stageCounts: stageCounts,
       recentOrders: orders.take(5).toList(growable: false),
     );
   }

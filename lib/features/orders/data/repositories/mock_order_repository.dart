@@ -1,5 +1,4 @@
 import '../../../../core/error/failures.dart';
-import '../../../catalog/domain/entities/category.dart';
 import '../../../catalog/domain/entities/product.dart';
 import '../../domain/entities/customer_details.dart';
 import '../../domain/entities/measurement_set.dart';
@@ -25,138 +24,14 @@ class MockOrderRepository implements OrderRepository {
   /// Counter used to generate the next `SN-####` id for placed orders.
   int _nextOrderNumber = 1052;
 
-  // --- Product seeds (mirror the catalog definitions) ---------------------
-
-  static const Product _blouse = Product(
-    id: 'p_blouse',
-    category: CategoryKind.women,
-    name: 'Designer Blouse',
-    typeLabel: 'Blouse',
-    rating: 4.8,
-    readyInDays: 5,
-    priceInr: 650,
-    imageCount: 4,
-    imageUrls: [
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop',
-    ],
-  );
-
-  static const Product _kurta = Product(
-    id: 'p_kurta',
-    category: CategoryKind.men,
-    name: 'Kurta Pajama',
-    typeLabel: 'Kurta set',
-    rating: 4.8,
-    readyInDays: 6,
-    priceInr: 1000,
-    imageCount: 4,
-    imageUrls: [
-      'https://images.unsplash.com/photo-1597983073493-88cd35cfa3d0?w=500&auto=format&fit=crop',
-    ],
-  );
-
-  static const Product _anarkali = Product(
-    id: 'p_anarkali',
-    category: CategoryKind.women,
-    name: 'Anarkali Kurti',
-    typeLabel: 'Kurti',
-    rating: 4.7,
-    readyInDays: 7,
-    priceInr: 900,
-    imageCount: 4,
-    imageUrls: [
-      'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop',
-    ],
-  );
-
-  static const Product _shirt = Product(
-    id: 'p_shirt',
-    category: CategoryKind.men,
-    name: 'Formal Shirt',
-    typeLabel: 'Shirt',
-    rating: 4.6,
-    readyInDays: 4,
-    priceInr: 550,
-    imageCount: 4,
-    imageUrls: [
-      'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500&auto=format&fit=crop',
-    ],
-  );
-
-  static const Product _frock = Product(
-    id: 'p_frock',
-    category: CategoryKind.kids,
-    name: 'Kids Frock',
-    typeLabel: 'Frock',
-    rating: 4.9,
-    readyInDays: 3,
-    priceInr: 450,
-    imageCount: 4,
-    imageUrls: [
-      'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=500&auto=format&fit=crop',
-    ],
-  );
-
   // --- Order seeds --------------------------------------------------------
 
   static List<Order> _seedActiveOrders() {
-    return [
-      Order(
-        id: 'SN-1048',
-        product: _blouse,
-        placedDate: DateTime(2025, 10, 20, 11, 20),
-        status: OrderStatus.inProgress,
-        progress: 0.4,
-        nextStep: 'Stitching started',
-        amountAtShopInr: 650,
-        expectedReady: DateTime(2025, 10, 27),
-      ),
-      Order(
-        id: 'SN-1041',
-        product: _kurta,
-        placedDate: DateTime(2025, 10, 18, 9, 10),
-        status: OrderStatus.inProgress,
-        progress: 0.4,
-        nextStep: 'Stitching started',
-        amountAtShopInr: 1000,
-        expectedReady: DateTime(2025, 10, 26),
-      ),
-      Order(
-        id: 'SN-1036',
-        product: _anarkali,
-        placedDate: DateTime(2025, 10, 15, 16, 30),
-        status: OrderStatus.inProgress,
-        progress: 0.8,
-        nextStep: 'Final touch-up',
-        amountAtShopInr: 900,
-        expectedReady: DateTime(2025, 10, 24),
-      ),
-    ];
+    return <Order>[];
   }
 
   static List<Order> _seedCompletedOrders() {
-    return [
-      Order(
-        id: 'SN-1012',
-        product: _shirt,
-        placedDate: DateTime(2025, 9, 28, 10, 0),
-        status: OrderStatus.completed,
-        progress: 1.0,
-        nextStep: 'All set',
-        amountAtShopInr: 550,
-        expectedReady: DateTime(2025, 10, 2),
-      ),
-      Order(
-        id: 'SN-1007',
-        product: _frock,
-        placedDate: DateTime(2025, 9, 20, 14, 15),
-        status: OrderStatus.completed,
-        progress: 1.0,
-        nextStep: 'All set',
-        amountAtShopInr: 450,
-        expectedReady: DateTime(2025, 9, 23),
-      ),
-    ];
+    return <Order>[];
   }
 
   // --- Timeline seed ------------------------------------------------------

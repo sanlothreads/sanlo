@@ -2,18 +2,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 import '../../../../core/entities/gender.dart';
+import '../../../orders/domain/entities/order_status.dart';
 import '../../domain/entities/admin_customer.dart';
 import '../../domain/entities/admin_order.dart';
 import '../../domain/entities/admin_product.dart';
 import '../../domain/entities/dashboard_summary.dart';
+import '../../domain/entities/order_stage.dart';
 import '../../domain/repositories/admin_repository.dart';
+import '../models/admin_order_model.dart';
 import '../models/admin_product_model.dart';
 import 'mock_admin_repository.dart';
 
 /// Firebase Firestore & Realtime Database implementation of [AdminRepository].
 ///
 /// Stores and fetches catalog products in the `products` collection in Firestore,
-/// and fetches logged-in customers from the Realtime Database `users` node.
+/// orders in the `orders` collection in Firestore, and fetches logged-in
+/// customers from the Realtime Database `users` node.
 class FirebaseAdminRepository implements AdminRepository {
   FirebaseAdminRepository({
     FirebaseFirestore? firestore,
@@ -34,6 +38,9 @@ class FirebaseAdminRepository implements AdminRepository {
 
   CollectionReference<Map<String, dynamic>> get _productsRef =>
       _firestore.collection('products');
+
+  CollectionReference<Map<String, dynamic>> get _ordersRef =>
+      _firestore.collection('orders');
 
   @override
   Future<List<AdminProduct>> loadProducts() async {
@@ -76,22 +83,195 @@ class FirebaseAdminRepository implements AdminRepository {
   }
 
   @override
-  Future<DashboardSummary> loadDashboard() => _mockFallback.loadDashboard();
+  Stream<List<AdminOrder>> watchOrders() {
+    try {
+      return _ordersRef.snapshots().map((snapshot) {
+        if (snapshot.docs.isEmpty) {
+          return <AdminOrder>[];
+        }
+        final List<AdminOrder> orders = <AdminOrder>[];
+        for (final doc in snapshot.docs) {
+          final data = doc.data();
+          final String statusStr = data['status'] as String? ?? '';
+          if (statusStr == 'draft') continue;
+          try {
+            orders.add(AdminOrderModel.fromMap(data, doc.id).toEntity());
+          } catch (_) {}
+        }
+        orders.sort((a, b) => b.placedDate.compareTo(a.placedDate));
+        return orders;
+      });
+    } catch (_) {
+      return Stream.value(<AdminOrder>[]);
+    }
+  }
 
   @override
-  Future<List<AdminOrder>> loadOrders() => _mockFallback.loadOrders();
+  Future<List<AdminOrder>> loadOrders() async {
+    try {
+      final snapshot = await _ordersRef.get();
+      if (snapshot.docs.isEmpty) {
+        return <AdminOrder>[];
+      }
+
+      final List<AdminOrder> orders = <AdminOrder>[];
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final String statusStr = data['status'] as String? ?? '';
+        if (statusStr == 'draft') continue;
+        try {
+          orders.add(AdminOrderModel.fromMap(data, doc.id).toEntity());
+        } catch (_) {}
+      }
+
+      orders.sort((a, b) => b.placedDate.compareTo(a.placedDate));
+      return orders;
+    } catch (_) {
+      return <AdminOrder>[];
+    }
+  }
+
+  @override
+  Future<void> updateOrderStage(String orderId, OrderStage nextStage) async {
+    final String cleanId = orderId.replaceAll('#', '').trim();
+
+    final String statusStr = _mapStageToOrderStatusName(nextStage);
+    final double progress = _mapStageToProgress(nextStage);
+    final String nextStep = _mapStageToNextStep(nextStage);
+
+    final Map<String, dynamic> updateData = <String, dynamic>{
+      'stage': nextStage.name,
+      'status': statusStr,
+      'progress': progress,
+      'nextStep': nextStep,
+      'updatedAt': DateTime.now().toIso8601String(),
+    };
+
+    await _ordersRef.doc(cleanId).set(updateData, SetOptions(merge: true));
+  }
+
+  String _mapStageToOrderStatusName(OrderStage stage) {
+    switch (stage) {
+      case OrderStage.ordered:
+        return OrderStatus.placed.name;
+      case OrderStage.measurementDone:
+      case OrderStage.stitchingStarted:
+      case OrderStage.stitchingFinished:
+      case OrderStage.finalTouchUp:
+        return OrderStatus.inProgress.name;
+      case OrderStage.allSet:
+        return OrderStatus.completed.name;
+    }
+  }
+
+  double _mapStageToProgress(OrderStage stage) {
+    switch (stage) {
+      case OrderStage.ordered:
+        return 0.05;
+      case OrderStage.measurementDone:
+        return 0.20;
+      case OrderStage.stitchingStarted:
+        return 0.50;
+      case OrderStage.stitchingFinished:
+        return 0.75;
+      case OrderStage.finalTouchUp:
+        return 0.90;
+      case OrderStage.allSet:
+        return 1.00;
+    }
+  }
+
+  String _mapStageToNextStep(OrderStage stage) {
+    switch (stage) {
+      case OrderStage.ordered:
+        return 'Measurement done';
+      case OrderStage.measurementDone:
+        return 'Stitching started';
+      case OrderStage.stitchingStarted:
+        return 'Stitching finished';
+      case OrderStage.stitchingFinished:
+        return 'Final touch-up';
+      case OrderStage.finalTouchUp:
+        return 'All set';
+      case OrderStage.allSet:
+        return 'Completed';
+    }
+  }
+
+  @override
+  Future<DashboardSummary> loadDashboard() async {
+    try {
+      final List<AdminOrder> orders = await loadOrders();
+
+      final int totalOrders = orders.length;
+      final DateTime now = DateTime.now();
+      final int newToday = orders.where((o) {
+        return o.placedDate.year == now.year &&
+            o.placedDate.month == now.month &&
+            o.placedDate.day == now.day;
+      }).length;
+
+      final int inProgress = orders
+          .where((o) => o.stage != OrderStage.allSet)
+          .length;
+      final int readyToCollect = orders
+          .where((o) => o.stage == OrderStage.allSet)
+          .length;
+
+      final Map<OrderStage, int> stageCounts = <OrderStage, int>{
+        for (final OrderStage s in OrderStage.values) s: 0,
+      };
+
+      for (final AdminOrder order in orders) {
+        stageCounts[order.stage] = (stageCounts[order.stage] ?? 0) + 1;
+      }
+
+      return DashboardSummary(
+        totalOrders: totalOrders,
+        newToday: newToday,
+        newTodayNote: totalOrders == 0
+            ? 'No orders today'
+            : '$newToday orders placed today',
+        inProgress: inProgress,
+        inProgressNote: 'In stitching pipeline',
+        readyToCollect: readyToCollect,
+        readyNote: 'Payment due at shop',
+        stageCounts: stageCounts,
+        recentOrders: orders.take(5).toList(growable: false),
+      );
+    } catch (_) {
+      return const DashboardSummary(
+        totalOrders: 0,
+        newToday: 0,
+        newTodayNote: 'No orders today',
+        inProgress: 0,
+        inProgressNote: 'In stitching pipeline',
+        readyToCollect: 0,
+        readyNote: 'Payment due at shop',
+        stageCounts: {
+          OrderStage.ordered: 0,
+          OrderStage.measurementDone: 0,
+          OrderStage.stitchingStarted: 0,
+          OrderStage.stitchingFinished: 0,
+          OrderStage.finalTouchUp: 0,
+          OrderStage.allSet: 0,
+        },
+        recentOrders: [],
+      );
+    }
+  }
 
   @override
   Future<List<AdminCustomer>> loadCustomers() async {
     try {
       final snapshot = await _db.ref('users').get();
       if (!snapshot.exists || snapshot.value == null) {
-        return _mockFallback.loadCustomers();
+        return <AdminCustomer>[];
       }
 
       final Object? value = snapshot.value;
       if (value is! Map) {
-        return _mockFallback.loadCustomers();
+        return <AdminCustomer>[];
       }
 
       final List<AdminOrder> orders = await loadOrders();
@@ -160,50 +340,13 @@ class FirebaseAdminRepository implements AdminRepository {
         );
       }
 
-      return customers.isEmpty ? _mockFallback.loadCustomers() : customers;
+      return customers;
     } catch (_) {
-      return _mockFallback.loadCustomers();
+      return <AdminCustomer>[];
     }
   }
 
   String _normMobile(String input) {
     return input.replaceAll(RegExp(r'\D'), '');
-  }
-
-  DateTime _parseDateString(String dateStr) {
-    try {
-      final List<String> parts = dateStr.trim().split(' ');
-      if (parts.isNotEmpty) {
-        final List<String> dateParts = parts[0].split('-');
-        if (dateParts.length == 3) {
-          final int day = int.parse(dateParts[0]);
-          final int month = _monthIndex(dateParts[1]);
-          final int year = int.parse(dateParts[2]);
-          return DateTime(year, month, day);
-        }
-      }
-    } catch (_) {}
-    return DateTime.now();
-  }
-
-  int _monthIndex(String m) {
-    const List<String> months = <String>[
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final int idx = months.indexWhere(
-      (element) => element.toLowerCase() == m.toLowerCase(),
-    );
-    return idx >= 0 ? idx + 1 : 1;
   }
 }

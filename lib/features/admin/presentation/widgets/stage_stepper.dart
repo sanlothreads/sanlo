@@ -73,7 +73,9 @@ class StageStepper extends StatelessWidget {
           Text(
             s.label,
             style: TextStyle(
-              color: isCurrent ? AppColors.textPrimary : AppColors.textSecondary,
+              color: isCurrent
+                  ? AppColors.textPrimary
+                  : AppColors.textSecondary,
               fontSize: 14,
               fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w500,
             ),

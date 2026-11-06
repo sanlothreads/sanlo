@@ -1,16 +1,48 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sanlo/features/admin/data/models/admin_customer_model.dart';
+import 'package:sanlo/features/admin/data/models/admin_order_model.dart';
 import 'package:sanlo/features/admin/data/repositories/mock_admin_repository.dart';
 import 'package:sanlo/features/admin/domain/entities/admin_product.dart';
 import 'package:sanlo/features/admin/domain/entities/order_stage.dart';
-import 'package:sanlo/features/catalog/domain/entities/category.dart';
 import 'package:sanlo/features/admin/presentation/cubit/admin_customers_cubit.dart';
 import 'package:sanlo/features/admin/presentation/cubit/admin_orders_cubit.dart';
 import 'package:sanlo/features/admin/presentation/cubit/admin_products_cubit.dart';
+import 'package:sanlo/features/catalog/domain/entities/category.dart';
 
 void main() {
   late MockAdminRepository repo;
 
-  setUp(() => repo = MockAdminRepository());
+  final sampleOrder = AdminOrderModel(
+    id: 'SN-1001',
+    item: 'Designer Blouse',
+    customerName: 'Priya Sharma',
+    customerPhone: '+91 98765 43210',
+    customerAddress: '21 Park Street, Pune',
+    placedDate: DateTime(2025, 10, 25),
+    dueDate: DateTime(2025, 10, 29),
+    amountAtShopInr: 650,
+    stage: 'ordered',
+    measurementState: 'entered',
+  );
+
+  final sampleCustomer = AdminCustomerModel(
+    id: 'c_priya',
+    name: 'Priya Sharma',
+    mobile: '+91 98765 43210',
+    gender: 'female',
+    type: 'registered',
+    registeredDate: '20-Oct-2025 10:15 AM',
+    lastLogin: '24-Oct-2025 02:30 PM',
+    orderCount: 1,
+    lastOrderDate: DateTime(2025, 10, 24),
+  );
+
+  setUp(
+    () => repo = MockAdminRepository(
+      initialOrders: [sampleOrder],
+      initialCustomers: [sampleCustomer],
+    ),
+  );
 
   group('AdminOrdersCubit', () {
     test('load selects the first order by default', () async {
@@ -56,6 +88,13 @@ void main() {
       cubit.advanceSelected();
       expect(cubit.state.selectedOrder!.stage, OrderStage.allSet);
     });
+
+    test('updateSelectedStage directly sets selected order stage', () async {
+      final cubit = AdminOrdersCubit(repo);
+      await cubit.load();
+      await cubit.updateSelectedStage(OrderStage.stitchingStarted);
+      expect(cubit.state.selectedOrder!.stage, OrderStage.stitchingStarted);
+    });
   });
 
   group('AdminProductsCubit', () {
@@ -65,13 +104,16 @@ void main() {
       cubit.search('shirt');
       expect(cubit.state.visibleProducts, isNotEmpty);
       expect(
-        cubit.state.visibleProducts
-            .every((p) => p.name.toLowerCase().contains('shirt')),
+        cubit.state.visibleProducts.every(
+          (p) => p.name.toLowerCase().contains('shirt'),
+        ),
         isTrue,
       );
       cubit.search('');
-      expect(cubit.state.visibleProducts.length,
-          cubit.state.allProducts.length);
+      expect(
+        cubit.state.visibleProducts.length,
+        cubit.state.allProducts.length,
+      );
     });
 
     test('upsert adds a new product and updates an existing one', () async {
@@ -111,8 +153,10 @@ void main() {
       cubit.search('98765');
       expect(cubit.state.visibleCustomers, isNotEmpty);
       cubit.search('');
-      expect(cubit.state.visibleCustomers.length,
-          cubit.state.allCustomers.length);
+      expect(
+        cubit.state.visibleCustomers.length,
+        cubit.state.allCustomers.length,
+      );
     });
   });
 }
