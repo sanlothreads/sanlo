@@ -320,33 +320,20 @@ class _PhotoAreaState extends State<_PhotoArea> {
               },
               itemBuilder: (context, index) {
                 final bool hasImage = index < widget.imageUrls.length;
-                final String currentUrl = hasImage
+                final String? currentUrl =
+                    hasImage && widget.imageUrls[index].isNotEmpty
                     ? widget.imageUrls[index]
-                    : '';
-
-                if (hasImage && currentUrl.isNotEmpty) {
-                  return Image.network(
-                    currentUrl,
-                    fit: BoxFit.scaleDown,
-                    width: double.infinity,
-                    height: 320,
-                    errorBuilder: (ctx, err, stack) => ImagePlaceholder(
-                      height: 320,
-                      width: double.infinity,
-                      borderRadius: BorderRadius.zero,
-                      backgroundColor: AppColors.cardLavender,
-                      caption: '[Photo ${index + 1} of $count]',
-                    ),
-                  );
-                }
+                    : null;
 
                 return ImagePlaceholder(
+                  imageUrl: currentUrl,
                   height: 320,
                   width: double.infinity,
                   borderRadius: BorderRadius.zero,
                   backgroundColor: AppColors.cardBackgroundForIndex(index),
                   foregroundColor: AppColors.iconAccentForIndex(index),
                   caption: '[Photo ${index + 1} of $count]',
+                  fit: BoxFit.scaleDown,
                 );
               },
             ),
@@ -440,38 +427,26 @@ class _VariantThumbnails extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.cardBackgroundForIndex(index),
                 borderRadius: AppRadius.mdAll,
                 border: Border.all(
                   color: selected ? AppColors.primary : Colors.transparent,
                   width: 2,
                 ),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: hasUrl
-                  ? ClipRRect(
-                      borderRadius: AppRadius.mdAll,
-                      child: Image.network(
-                        imageUrls[index],
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          Icons.checkroom,
-                          size: 22,
-                          color: selected
-                              ? AppColors.primary
-                              : AppColors.textSecondary,
-                        ),
-                      ),
-                    )
-                  : Icon(
-                      Icons.checkroom,
-                      size: 22,
-                      color: selected
-                          ? AppColors.primary
-                          : AppColors.textSecondary,
-                    ),
+              child: ImagePlaceholder(
+                imageUrl: hasUrl && imageUrls[index].isNotEmpty
+                    ? imageUrls[index]
+                    : null,
+                width: 56,
+                height: 56,
+                borderRadius: AppRadius.mdAll,
+                backgroundColor: AppColors.cardBackgroundForIndex(index),
+                foregroundColor: selected
+                    ? AppColors.primary
+                    : AppColors.textSecondary,
+                icon: Icons.checkroom,
+                fit: BoxFit.cover,
+              ),
             ),
           );
         },

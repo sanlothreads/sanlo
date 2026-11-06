@@ -331,29 +331,15 @@ class _ProductSummary extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          ClipRRect(
+          ImagePlaceholder(
+            imageUrl: product.imageUrls.isNotEmpty
+                ? product.imageUrls.first
+                : null,
+            width: 56,
+            height: 56,
             borderRadius: AppRadius.smAll,
-            child: SizedBox(
-              width: 56,
-              height: 56,
-              child: product.imageUrls.isNotEmpty
-                  ? Image.network(
-                      product.imageUrls.first,
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.scaleDown,
-                      errorBuilder: (ctx, err, stack) => const ImagePlaceholder(
-                        width: 56,
-                        height: 56,
-                        backgroundColor: AppColors.surface,
-                      ),
-                    )
-                  : const ImagePlaceholder(
-                      width: 56,
-                      height: 56,
-                      backgroundColor: AppColors.surface,
-                    ),
-            ),
+            backgroundColor: AppColors.surface,
+            fit: BoxFit.scaleDown,
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:sanlo/core/theme/app_colors.dart';
 import 'package:sanlo/core/theme/app_spacing.dart';
 import 'package:sanlo/core/widgets/image_placeholder.dart';
@@ -318,6 +317,9 @@ class _OrderCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 ImagePlaceholder(
+                  imageUrl: order.product.imageUrls.isNotEmpty
+                      ? order.product.imageUrls.first
+                      : null,
                   width: 56,
                   height: 56,
                   borderRadius: AppRadius.mdAll,

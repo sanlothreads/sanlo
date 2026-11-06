@@ -1,0 +1,375 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Add Access Denied route constants": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947504542
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947523088
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947651229
+      }
+    ],
+    "2.1 Implement `AccessDeniedScreen`": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947504667
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947523978
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947652450
+      }
+    ],
+    "2.2 Write widget tests for AccessDeniedScreen content and navigation": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947504751
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947676760
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947909765
+      }
+    ],
+    "3. Register the top-level /access-denied route": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947504783
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947920233
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793948039868
+      }
+    ],
+    "4.1 Add `_AdminAccess` enum, `_AdminGuardLoading`, and `_AdminGuard` to app_router.dart": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947504832
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947675930
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947910610
+      }
+    ],
+    "5.1 Wire _AdminGuard into the admin StatefulShellRoute builder": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947504874
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793948051932
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793948219391
+      }
+    ],
+    "6. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947504938
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793950006420
+      }
+    ],
+    "7.1 Set up the guard test harness": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947504989
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793948291451
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949217196
+      }
+    ],
+    "7.2 Admin resolves → shell shown": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505032
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949241225
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949795655
+      }
+    ],
+    "7.3 Loading before resolution": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505077
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949242634
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949796019
+      }
+    ],
+    "7.4 Non-admin → redirect": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505109
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949243583
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949797398
+      }
+    ],
+    "7.5 Guest → redirect without lookup": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505142
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949244554
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949798429
+      }
+    ],
+    "7.6 Unauthenticated → redirect without lookup": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505176
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949245957
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949799828
+      }
+    ],
+    "7.7 Error → redirect (fail closed)": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505203
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949246889
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949800725
+      }
+    ],
+    "7.8 Deep-link entry gated": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505237
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949247835
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949801688
+      }
+    ],
+    "7.9 Nested product-new route gated by single wrapper": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505266
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949249236
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949803047
+      }
+    ],
+    "8.1 Property 1 — Admin content shown iff authenticated admin": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505290
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949250167
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949803991
+      }
+    ],
+    "8.2 Property 2 — Every deny outcome routes to Access Denied": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505320
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949251080
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949805476
+      }
+    ],
+    "9. No-regression check for splash-time routing": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505363
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949274818
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949806007
+      }
+    ],
+    "10. Final verification": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947505386
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949825985
+      },
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949986364
+      }
+    ],
+    "2. Create the AccessDeniedScreen": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947909801
+      }
+    ],
+    "4. Implement the _AdminGuard gate": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793947910659
+      }
+    ],
+    "5. Wrap AdminShellHost with the guard": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793948219455
+      }
+    ],
+    "7. Guard behavior tests": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949803096
+      }
+    ],
+    "8. Correctness property tests": [
+      {
+        "executionId": "a7451ede-b939-4d67-80f9-6bf476a7ff65",
+        "chatSessionId": "sess_531a57f6-ac2e-410a-8a9f-aa2618c8f1c2",
+        "timestamp": 1793949805508
+      }
+    ]
+  }
+}

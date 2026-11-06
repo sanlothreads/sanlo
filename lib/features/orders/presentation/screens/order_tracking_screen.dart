@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/phone_launcher.dart';
@@ -49,6 +50,14 @@ class _OrderTrackingView extends StatelessWidget {
 
   final String orderId;
 
+  void _handleBack(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.goNamed(Routes.homeName);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<OrderTrackingCubit, OrderTrackingState>(
@@ -60,19 +69,27 @@ class _OrderTrackingView extends StatelessWidget {
         // Prefer the loaded order id for the title once available.
         final String titleId = state.order?.id ?? orderId;
 
-        return Scaffold(
-          backgroundColor: AppColors.scaffoldBackground,
-          appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
+        return PopScope(
+          canPop: context.canPop(),
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) {
+              _handleBack(context);
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.scaffoldBackground,
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => _handleBack(context),
+              ),
+              title: Text('Order #$titleId'),
             ),
-            title: Text('Order #$titleId'),
-          ),
-          body: ResponsiveCenter(
-            child: state.loading && state.order == null
-                ? const Center(child: CircularProgressIndicator())
-                : _LoadedBody(state: state),
+            body: ResponsiveCenter(
+              child: state.loading && state.order == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : _LoadedBody(state: state),
+            ),
           ),
         );
       },
@@ -140,36 +157,16 @@ class _HeaderCard extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              ClipRRect(
+              ImagePlaceholder(
+                imageUrl: order.product.imageUrls.isNotEmpty
+                    ? order.product.imageUrls.first
+                    : null,
+                width: 56,
+                height: 56,
+                icon: Icons.checkroom,
                 borderRadius: AppRadius.mdAll,
-                child: SizedBox(
-                  width: 56,
-                  height: 56,
-                  child: order.product.imageUrls.isNotEmpty
-                      ? Image.network(
-                          order.product.imageUrls.first,
-                          width: 56,
-                          height: 56,
-                          fit: BoxFit.scaleDown,
-                          errorBuilder: (ctx, err, stack) =>
-                              const ImagePlaceholder(
-                                width: 56,
-                                height: 56,
-                                icon: Icons.checkroom,
-                                borderRadius: AppRadius.mdAll,
-                                backgroundColor: Colors.white24,
-                                foregroundColor: AppColors.onPrimary,
-                              ),
-                        )
-                      : const ImagePlaceholder(
-                          width: 56,
-                          height: 56,
-                          icon: Icons.checkroom,
-                          borderRadius: AppRadius.mdAll,
-                          backgroundColor: Colors.white24,
-                          foregroundColor: AppColors.onPrimary,
-                        ),
-                ),
+                backgroundColor: Colors.white24,
+                foregroundColor: AppColors.onPrimary,
               ),
               const SizedBox(width: AppSpacing.smd),
               Expanded(
@@ -263,42 +260,58 @@ class _CallShopButton extends StatelessWidget {
 class _NotFoundView extends StatelessWidget {
   const _NotFoundView();
 
+  void _handleBack(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.goNamed(Routes.homeName);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleBack(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => _handleBack(context),
+          ),
+          title: const Text('Order'),
         ),
-        title: const Text('Order'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            const Icon(
-              Icons.search_off,
-              size: 48,
-              color: AppColors.textTertiary,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text('Not found', style: textTheme.titleLarge),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'We could not find that order.',
-              style: textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Icon(
+                Icons.search_off,
+                size: 48,
+                color: AppColors.textTertiary,
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            TextButton(
-              onPressed: () => context.pop(),
-              child: const Text('Go back'),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.md),
+              Text('Not found', style: textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'We could not find that order.',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              TextButton(
+                onPressed: () => _handleBack(context),
+                child: const Text('Go back'),
+              ),
+            ],
+          ),
         ),
       ),
     );

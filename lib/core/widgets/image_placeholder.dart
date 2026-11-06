@@ -7,11 +7,9 @@ import '../theme/app_spacing.dart';
 /// otherwise show a photo (product grid cards, product detail carousel,
 /// profile hero, etc.).
 ///
-/// It renders a rounded container with a centered icon and, when provided, a
-/// caption below it (for example `[Photo 1 of 4]` or
-/// `[Hero photo – your shop / work]`). This is the app's dummy-image strategy:
-/// no network calls and no bundled assets. When real images arrive later, the
-/// internals can be swapped while keeping this same public API.
+/// When an [imageUrl] is provided and non-empty, it attempts to render the network image.
+/// If network image loading fails or if [imageUrl] is null/empty, it renders a rounded
+/// container with a centered icon and, when provided, a caption below it.
 ///
 /// The background and foreground colors are customizable so product cards can
 /// tint each placeholder per category using the pastel
@@ -19,6 +17,7 @@ import '../theme/app_spacing.dart';
 class ImagePlaceholder extends StatelessWidget {
   const ImagePlaceholder({
     super.key,
+    this.imageUrl,
     this.icon = Icons.checkroom,
     this.caption,
     this.height,
@@ -26,7 +25,12 @@ class ImagePlaceholder extends StatelessWidget {
     this.borderRadius,
     this.backgroundColor,
     this.foregroundColor,
+    this.fit = BoxFit.cover,
   });
+
+  /// Optional network image URL to render inside the placeholder box.
+  /// When non-null and non-empty, [Image.network] is shown.
+  final String? imageUrl;
 
   /// The glyph shown in the center of the placeholder. Defaults to a
   /// t-shirt-ish [Icons.checkroom].
@@ -55,8 +59,37 @@ class ImagePlaceholder extends StatelessWidget {
   /// from the palette ([AppColors.textSecondary]).
   final Color? foregroundColor;
 
+  /// How the network image should be inscribed into the box bounds.
+  /// Defaults to [BoxFit.cover].
+  final BoxFit fit;
+
   @override
   Widget build(BuildContext context) {
+    final String? url = imageUrl;
+    final BorderRadius radius = borderRadius ?? AppRadius.lgAll;
+
+    if (url != null && url.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: radius,
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: Image.network(
+            url,
+            width: width,
+            height: height,
+            fit: fit,
+            errorBuilder: (context, error, stackTrace) =>
+                _buildPlaceholder(context),
+          ),
+        ),
+      );
+    }
+
+    return _buildPlaceholder(context);
+  }
+
+  Widget _buildPlaceholder(BuildContext context) {
     final Color background = backgroundColor ?? AppColors.cardLavender;
     final Color foreground = foregroundColor ?? AppColors.textSecondary;
     final TextTheme textTheme = Theme.of(context).textTheme;
@@ -65,12 +98,12 @@ class ImagePlaceholder extends StatelessWidget {
 
     final double effectiveIconSize =
         (height != null && height! <= 64) || (width != null && width! <= 64)
-        ? 24.0
-        : 40.0;
+            ? 24.0
+            : 40.0;
     final EdgeInsets effectivePadding =
         (height != null && height! <= 64) || (width != null && width! <= 64)
-        ? const EdgeInsets.all(AppSpacing.xs)
-        : const EdgeInsets.all(AppSpacing.md);
+            ? const EdgeInsets.all(AppSpacing.xs)
+            : const EdgeInsets.all(AppSpacing.md);
 
     return Container(
       height: height,

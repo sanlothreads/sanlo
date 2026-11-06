@@ -47,6 +47,10 @@ abstract final class Routes {
   static const String orderTrackingPath = '/order/tracking/:id';
   static const String orderTrackingName = 'orderTracking';
 
+  // --- Access denied (authorization gate target) ----------------------------
+  static const String accessDeniedPath = '/access-denied';
+  static const String accessDeniedName = 'accessDenied';
+
   // --- Admin shell tabs -----------------------------------------------------
   static const String adminDashboardPath = '/admin/dashboard';
   static const String adminDashboardName = 'adminDashboard';

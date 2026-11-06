@@ -12,6 +12,8 @@ class ProductModel {
     required this.readyInDays,
     required this.priceInr,
     required this.imageCount,
+    this.shortDescription = '',
+    this.imageUrls = const <String>[],
   });
 
   final String id;
@@ -22,8 +24,19 @@ class ProductModel {
   final int readyInDays;
   final int priceInr;
   final int imageCount;
+  final String shortDescription;
+  final List<String> imageUrls;
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    final rawUrls =
+        json['imageUrls'] as List<dynamic>? ?? json['images'] as List<dynamic>?;
+    final List<String> urls = rawUrls != null
+        ? rawUrls
+              .map((e) => e.toString())
+              .where((s) => s.trim().isNotEmpty)
+              .toList()
+        : <String>[];
+
     return ProductModel(
       id: json['id'] as String,
       category: json['category'] as String,
@@ -33,6 +46,8 @@ class ProductModel {
       readyInDays: json['readyInDays'] as int,
       priceInr: json['priceInr'] as int,
       imageCount: json['imageCount'] as int,
+      shortDescription: json['shortDescription'] as String? ?? '',
+      imageUrls: urls,
     );
   }
 
@@ -46,6 +61,8 @@ class ProductModel {
       'readyInDays': readyInDays,
       'priceInr': priceInr,
       'imageCount': imageCount,
+      'shortDescription': shortDescription,
+      'imageUrls': imageUrls,
     };
   }
 
@@ -59,6 +76,8 @@ class ProductModel {
       readyInDays: entity.readyInDays,
       priceInr: entity.priceInr,
       imageCount: entity.imageCount,
+      shortDescription: entity.shortDescription,
+      imageUrls: entity.imageUrls,
     );
   }
 
@@ -72,6 +91,8 @@ class ProductModel {
       readyInDays: readyInDays,
       priceInr: priceInr,
       imageCount: imageCount,
+      shortDescription: shortDescription,
+      imageUrls: imageUrls,
     );
   }
 }
