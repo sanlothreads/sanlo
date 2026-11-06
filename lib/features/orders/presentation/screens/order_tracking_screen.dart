@@ -147,62 +147,80 @@ class _HeaderCard extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.primary,
         borderRadius: AppRadius.lgAll,
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              ImagePlaceholder(
-                imageUrl: order.product.imageUrls.isNotEmpty
-                    ? order.product.imageUrls.first
-                    : null,
-                width: 56,
-                height: 56,
-                icon: Icons.checkroom,
-                borderRadius: AppRadius.mdAll,
-                backgroundColor: Colors.white24,
-                foregroundColor: AppColors.onPrimary,
-              ),
-              const SizedBox(width: AppSpacing.smd),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      order.product.name,
-                      style: textTheme.titleMedium?.copyWith(
-                        color: AppColors.onPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Placed ${_formatDayMonth(order.placedDate)} · '
-                      '₹${order.amountAtShopInr} at shop',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: AppColors.onPrimary.withValues(alpha: 0.85),
-                      ),
-                    ),
-                  ],
+        children: [
+          GestureDetector(
+            onTap: () => context.pushNamed(
+              'productDetails',
+              pathParameters: {'id': order.product.id},
+            ),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              children: [
+                ImagePlaceholder(
+                  imageUrl: order.product.imageUrls.isNotEmpty
+                      ? order.product.imageUrls.first
+                      : null,
+                  width: 56,
+                  height: 56,
+                  icon: Icons.checkroom,
+                  borderRadius: AppRadius.mdAll,
+                  backgroundColor: Colors.white24,
+                  foregroundColor: AppColors.onPrimary,
                 ),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.smd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              order.product.name,
+                              style: textTheme.titleMedium?.copyWith(
+                                color: AppColors.onPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: AppColors.onPrimary,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'Placed ${_formatDayMonth(order.placedDate)} · '
+                        '₹${order.amountAtShopInr} at shop',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.onPrimary.withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
+            children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
+                  children: [
                     Text(
                       'Current status',
                       style: textTheme.bodySmall?.copyWith(

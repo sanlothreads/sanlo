@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart' hide Order;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 import '../../../catalog/data/models/product_model.dart';
 import '../../../catalog/domain/entities/product.dart';
@@ -25,19 +26,24 @@ class FirebaseOrderRepository implements OrderRepository {
   FirebaseOrderRepository({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
+    FirebaseDatabase? database,
     MockOrderRepository? fallbackMock,
   }) : _injectedFirestore = firestore,
        _injectedAuth = auth,
+       _injectedDb = database,
        _mockFallback = fallbackMock ?? MockOrderRepository();
 
   final FirebaseFirestore? _injectedFirestore;
   final FirebaseAuth? _injectedAuth;
+  final FirebaseDatabase? _injectedDb;
   final MockOrderRepository _mockFallback;
 
   FirebaseFirestore get _firestore =>
       _injectedFirestore ?? FirebaseFirestore.instance;
 
   FirebaseAuth get _auth => _injectedAuth ?? FirebaseAuth.instance;
+
+  FirebaseDatabase get _db => _injectedDb ?? FirebaseDatabase.instance;
 
   CollectionReference<Map<String, dynamic>> get _ordersRef =>
       _firestore.collection('orders');
@@ -211,18 +217,130 @@ class FirebaseOrderRepository implements OrderRepository {
     }
   }
 
+  Future<Map<String, String>> _getCurrentUserInfo() async {
+    final Map<String, String> info = <String, String>{};
+    final User? firebaseUser = _auth.currentUser;
+    if (firebaseUser == null) return info;
+
+    if (firebaseUser.uid.isNotEmpty) {
+      info['uid'] = firebaseUser.uid;
+    }
+    if (firebaseUser.phoneNumber != null &&
+        firebaseUser.phoneNumber!.isNotEmpty) {
+      info['mobile'] = firebaseUser.phoneNumber!;
+    }
+    if (firebaseUser.email != null && firebaseUser.email!.isNotEmpty) {
+      info['email'] = firebaseUser.email!;
+    }
+
+    try {
+      final snapshot = await _db.ref('users/${firebaseUser.uid}').get();
+      if (snapshot.exists && snapshot.value is Map) {
+        final Map map = Map.from(snapshot.value as Map);
+        final String? mob =
+            map['mobile'] as String? ?? map['phone'] as String?;
+        final String? em = map['email'] as String?;
+        if (mob != null &&
+            mob.trim().isNotEmpty &&
+            !info.containsKey('mobile')) {
+          info['mobile'] = mob.trim();
+        }
+        if (em != null &&
+            em.trim().isNotEmpty &&
+            !info.containsKey('email')) {
+          info['email'] = em.trim();
+        }
+      }
+    } catch (_) {}
+
+    return info;
+  }
+
+  bool _orderMatchesUser({
+    required Map<String, dynamic> data,
+    required String? userUid,
+    required String? userMobile,
+    required String? userEmail,
+  }) {
+    // 1. User ID check
+    if (userUid != null && userUid.isNotEmpty) {
+      final String? orderUserId = data['userId'] as String?;
+      if (orderUserId != null && orderUserId == userUid) {
+        return true;
+      }
+    }
+
+    // Extract order mobile and email
+    final dynamic details = data['details'];
+    String? orderMobile;
+    String? orderEmail;
+    if (details is Map) {
+      final Map<String, dynamic> detMap =
+          Map<String, dynamic>.from(details);
+      orderMobile =
+          detMap['phone'] as String? ?? detMap['mobile'] as String?;
+      orderEmail = detMap['email'] as String?;
+    }
+    orderMobile ??= data['customerPhone'] as String? ??
+        data['mobile'] as String? ??
+        data['phone'] as String?;
+    orderEmail ??=
+        data['customerEmail'] as String? ?? data['email'] as String?;
+
+    // 2. Mobile check
+    if (userMobile != null &&
+        userMobile.isNotEmpty &&
+        orderMobile != null &&
+        orderMobile.isNotEmpty) {
+      if (_mobilesMatch(orderMobile, userMobile)) {
+        return true;
+      }
+    }
+
+    // 3. Email check
+    if (userEmail != null &&
+        userEmail.isNotEmpty &&
+        orderEmail != null &&
+        orderEmail.isNotEmpty) {
+      if (orderEmail.trim().toLowerCase() ==
+          userEmail.trim().toLowerCase()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool _mobilesMatch(String m1, String m2) {
+    final String digits1 = m1.replaceAll(RegExp(r'\D'), '');
+    final String digits2 = m2.replaceAll(RegExp(r'\D'), '');
+    if (digits1.isEmpty || digits2.isEmpty) return false;
+    if (digits1 == digits2) return true;
+
+    final String last10_1 = digits1.length >= 10
+        ? digits1.substring(digits1.length - 10)
+        : digits1;
+    final String last10_2 = digits2.length >= 10
+        ? digits2.substring(digits2.length - 10)
+        : digits2;
+    return last10_1 == last10_2;
+  }
+
   @override
   Future<List<Order>> getOrders({
     OrderBucket bucket = OrderBucket.active,
   }) async {
     try {
-      final String? uid = _auth.currentUser?.uid;
-      final query = uid != null
-          ? _ordersRef.where('userId', isEqualTo: uid)
-          : _ordersRef;
+      final userInfo = await _getCurrentUserInfo();
+      final String? userUid = userInfo['uid'];
+      final String? userMobile = userInfo['mobile'];
+      final String? userEmail = userInfo['email'];
 
-      final snapshot = await query.get();
+      final snapshot = await _ordersRef.get();
       if (snapshot.docs.isEmpty) {
+        if (userUid != null) {
+          return <Order>[];
+        }
         return _mockFallback.getOrders(bucket: bucket);
       }
 
@@ -231,6 +349,15 @@ class FirebaseOrderRepository implements OrderRepository {
         final data = doc.data();
         final String statusStr = data['status'] as String? ?? 'draft';
         if (statusStr == 'draft') continue;
+
+        if (!_orderMatchesUser(
+          data: data,
+          userUid: userUid,
+          userMobile: userMobile,
+          userEmail: userEmail,
+        )) {
+          continue;
+        }
 
         try {
           final order = OrderModel.fromJson(data).toEntity();
@@ -245,10 +372,11 @@ class FirebaseOrderRepository implements OrderRepository {
         }
       }
 
-      if (orders.isEmpty) {
+      if (orders.isEmpty && userUid == null) {
         return _mockFallback.getOrders(bucket: bucket);
       }
 
+      orders.sort((a, b) => b.placedDate.compareTo(a.placedDate));
       return orders;
     } catch (_) {
       return _mockFallback.getOrders(bucket: bucket);
